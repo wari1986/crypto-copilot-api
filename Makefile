@@ -1,10 +1,9 @@
-PY = uv run
-UV = uv
+PY ?= uv run
+UV ?= uv
 
 .PHONY: dev test lint fmt migrate run hooks
 
-dev:
-	docker compose up --build
+dev: run
 
 test:
 	$(PY) pytest -q

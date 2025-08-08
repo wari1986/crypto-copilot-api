@@ -24,17 +24,7 @@ FastAPI + SQLAlchemy (async) backend for a crypto trading copilot. Week 1 scope:
   LLM Decider (OpenAI) ----> Validators ----> model_decisions table
 ```
 
-## Quickstart
-
-### With Docker
-- Copy `.env.example` to `.env` and fill values
-- Build and run:
-```bash
-make dev
-```
-- API at `http://localhost:8000`, docs at `http://localhost:8000/docs`
-
-### Local (uv)
+## Quickstart (Local)
 ```bash
 uv sync --all-extras
 cp .env.example .env
@@ -43,7 +33,7 @@ make run
 ```
 
 ## Configuration (.env)
-See `.env.example` for all keys.
+See `.env.example` for all keys. Use your Supabase Postgres URI in `DATABASE_URL`.
 
 ## Migrations
 ```bash
