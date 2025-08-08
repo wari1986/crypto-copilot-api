@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable
-
-from app.schemas.llm_contract import Plan, ProposedTrade, OrderType
+from app.schemas.llm_contract import OrderType, Plan, ProposedTrade
 
 
 class ValidationError(Exception):

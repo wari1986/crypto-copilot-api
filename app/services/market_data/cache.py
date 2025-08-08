@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
-from typing import Deque, Dict, List, Tuple
 from collections import deque
+from dataclasses import dataclass, field
 
 
 @dataclass
 class OrderbookSnapshot:
-    bids: List[Tuple[float, float]]  # price, qty
-    asks: List[Tuple[float, float]]
+    bids: list[tuple[float, float]]  # price, qty
+    asks: list[tuple[float, float]]
 
 
 @dataclass
 class MarketCache:
-    orderbooks: Dict[str, OrderbookSnapshot] = field(default_factory=dict)
-    trades: Dict[str, Deque[Tuple[float, float]]] = field(default_factory=dict)  # (price, qty)
+    orderbooks: dict[str, OrderbookSnapshot] = field(default_factory=dict)
+    trades: dict[str, deque[tuple[float, float]]] = field(default_factory=dict)  # (price, qty)
     _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     async def set_orderbook(self, symbol: str, snapshot: OrderbookSnapshot) -> None:
@@ -28,10 +27,10 @@ class MarketCache:
             dq.append((price, qty))
 
 
-def atr(candles: List[dict], period: int = 14, method: str = "RMA") -> float:
+def atr(candles: list[dict], period: int = 14, method: str = "RMA") -> float:
     if not candles or len(candles) < 2:
         return 0.0
-    trs: List[float] = []
+    trs: list[float] = []
     prev_close = candles[0]["close"]
     for c in candles[1:]:
         high, low, close = c["high"], c["low"], c["close"]
@@ -49,11 +48,11 @@ def atr(candles: List[dict], period: int = 14, method: str = "RMA") -> float:
     return rma
 
 
-def volatility_regime(candles: List[dict]) -> str:
+def volatility_regime(candles: list[dict]) -> str:
     return "quiet" if atr(candles) < 0.01 else "expansion"
 
 
-def rolling_volume(candles: List[dict], n: int) -> float:
+def rolling_volume(candles: list[dict], n: int) -> float:
     if not candles:
         return 0.0
     return sum(c.get("volume", 0.0) for c in candles[-n:])

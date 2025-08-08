@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "0001_initial"
@@ -24,10 +23,10 @@ def upgrade() -> None:
         sa.Column("step_size", sa.Float(), nullable=False, server_default="0"),
         sa.Column("min_notional", sa.Float(), nullable=False, server_default="0"),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
         sa.UniqueConstraint("symbol", "exchange", name="uq_instrument_symbol_exchange"),
     )
@@ -50,10 +49,10 @@ def upgrade() -> None:
         sa.Column("close", sa.Float(), nullable=False),
         sa.Column("volume", sa.Float(), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
         sa.UniqueConstraint("instrument_id", "interval", "ts", name="uq_candle_unique"),
     )
@@ -77,10 +76,10 @@ def upgrade() -> None:
         sa.Column("exchange_order_id", sa.String(length=64), nullable=True),
         sa.Column("meta", sa.JSON(), nullable=True),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
     )
 
@@ -88,7 +87,7 @@ def upgrade() -> None:
         "fills",
         sa.Column("id", sa.Integer(), primary_key=True),
         sa.Column(
-            "order_id", sa.Integer(), sa.ForeignKey("orders.id", ondelete="CASCADE"), nullable=False
+            "order_id", sa.Integer(), sa.ForeignKey("orders.id", ondelete="CASCADE"), nullable=False,
         ),
         sa.Column("price", sa.Float(), nullable=False),
         sa.Column("qty", sa.Float(), nullable=False),
@@ -96,10 +95,10 @@ def upgrade() -> None:
         sa.Column("fee_asset", sa.String(length=20), nullable=False, server_default=""),
         sa.Column("ts", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
     )
 
@@ -118,10 +117,10 @@ def upgrade() -> None:
         sa.Column("unrealized_pnl", sa.Float(), nullable=False, server_default="0"),
         sa.Column("realized_pnl", sa.Float(), nullable=False, server_default="0"),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
     )
     op.create_index("ix_positions_instrument_id", "positions", ["instrument_id"])
@@ -132,10 +131,10 @@ def upgrade() -> None:
         sa.Column("key", sa.String(length=100), unique=True, nullable=False),
         sa.Column("value", sa.JSON(), nullable=True),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
     )
 
@@ -152,10 +151,10 @@ def upgrade() -> None:
         sa.Column("applied", sa.Boolean(), nullable=False, server_default=sa.text("false")),
         sa.Column("applied_ts", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
-            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
         sa.Column(
-            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
         ),
     )
 

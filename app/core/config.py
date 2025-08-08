@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Literal, Optional
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     env: Literal["dev", "prod", "test"] = Field(default="dev", alias="ENV")
     api_port: int = Field(default=8000, alias="API_PORT")
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = Field(
-        default="INFO", alias="LOG_LEVEL"
+        default="INFO", alias="LOG_LEVEL",
     )
 
     # Default to in-memory SQLite for local dev/tests to avoid requiring Postgres at import time
@@ -21,11 +21,11 @@ class Settings(BaseSettings):
 
     ccxt_rate_limit: bool = Field(default=True, alias="CCXT_RATE_LIMIT")
 
-    bybit_api_key: Optional[str] = Field(default=None, alias="BYBIT_API_KEY")
-    bybit_api_secret: Optional[str] = Field(default=None, alias="BYBIT_API_SECRET")
+    bybit_api_key: str | None = Field(default=None, alias="BYBIT_API_KEY")
+    bybit_api_secret: str | None = Field(default=None, alias="BYBIT_API_SECRET")
     bybit_testnet: bool = Field(default=True, alias="BYBIT_TESTNET")
 
-    openai_api_key: Optional[str] = Field(default=None, alias="OPENAI_API_KEY")
+    openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
     openai_model: str = Field(default="gpt-5", alias="OPENAI_MODEL")
     openai_timeout_seconds: int = Field(default=60, alias="OPENAI_TIMEOUT_SECONDS")
 

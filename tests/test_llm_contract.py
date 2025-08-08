@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.schemas.llm_contract import Plan, ProposedTrade, OrderSide, OrderType, TimeInForce
+from app.schemas.llm_contract import OrderSide, OrderType, Plan, ProposedTrade, TimeInForce
 
 
 def test_plan_valid_schema() -> None:

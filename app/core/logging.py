@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 import sys
 from contextvars import ContextVar
-from typing import Any, Dict
 
 _request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
 
@@ -25,7 +24,7 @@ def configure_logging(level: str = "INFO") -> None:
         fmt=(
             "%(asctime)s %(levelname)s [%(name)s] [req=%(request_id)s] "
             "%(message)s"
-        )
+        ),
     )
     handler.setFormatter(formatter)
 

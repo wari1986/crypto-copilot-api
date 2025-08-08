@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List
+from typing import Any
 
 
 class ExchangeBase(ABC):
     @abstractmethod
     async def place_order(
-        self, symbol: str, side: str, type_: str, qty: float, price: float | None = None
-    ) -> Dict[str, Any]:
+        self, symbol: str, side: str, type_: str, qty: float, price: float | None = None,
+    ) -> dict[str, Any]:
         raise NotImplementedError
 
     @abstractmethod
@@ -16,13 +16,13 @@ class ExchangeBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def get_open_orders(self, symbol: str | None = None) -> List[Dict[str, Any]]:
+    async def get_open_orders(self, symbol: str | None = None) -> list[dict[str, Any]]:
         raise NotImplementedError
 
     @abstractmethod
-    async def get_positions(self) -> List[Dict[str, Any]]:
+    async def get_positions(self) -> list[dict[str, Any]]:
         raise NotImplementedError
 
     @abstractmethod
-    async def get_balance(self) -> Dict[str, float]:
+    async def get_balance(self) -> dict[str, float]:
         raise NotImplementedError

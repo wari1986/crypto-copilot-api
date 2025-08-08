@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from openai import AsyncOpenAI
 
@@ -13,7 +13,7 @@ class LlmClient:
         self._model = settings.openai_model
         self._timeout = settings.openai_timeout_seconds
 
-    async def propose_plan(self, context: Dict[str, Any]) -> Dict[str, Any]:
+    async def propose_plan(self, context: dict[str, Any]) -> dict[str, Any]:
         # Minimal stub; real prompt/tooling later
         _ = context
         # Return an empty plan structure that will fail validation unless filled by caller/tests

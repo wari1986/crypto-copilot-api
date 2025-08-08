@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,7 +12,7 @@ class PortfolioService:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
-    async def positions(self) -> List[Dict[str, Any]]:
+    async def positions(self) -> list[dict[str, Any]]:
         res = await self._db.execute(select(Position))
         return [
             {
@@ -26,7 +26,7 @@ class PortfolioService:
             for p in res.scalars().all()
         ]
 
-    async def recent_orders(self, limit: int = 100) -> List[Dict[str, Any]]:
+    async def recent_orders(self, limit: int = 100) -> list[dict[str, Any]]:
         res = await self._db.execute(select(Order).order_by(Order.id.desc()).limit(limit))
         return [
             {
@@ -38,7 +38,7 @@ class PortfolioService:
             for o in res.scalars().all()
         ]
 
-    async def pnl_summary(self) -> Dict[str, float]:
+    async def pnl_summary(self) -> dict[str, float]:
         res = await self._db.execute(select(Position))
         positions = res.scalars().all()
         realized = sum(p.realized_pnl for p in positions)

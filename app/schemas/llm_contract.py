@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import List, Literal, Optional, Union
+from typing import Literal, Union
 
-from pydantic import BaseModel, Field, PositiveFloat, ValidationError, model_validator
+from pydantic import BaseModel, Field, PositiveFloat, model_validator
 
 
 class OrderSide(str, Enum):
@@ -53,15 +53,15 @@ class ProposedTrade(BaseModel):
     side: OrderSide
     order_type: OrderType
     qty: PositiveFloat
-    price: Optional[PositiveFloat] = None
+    price: PositiveFloat | None = None
     time_in_force: TimeInForce = TimeInForce.GTC
     max_slippage_bps: int = Field(ge=0, le=10_000, default=50)
-    stop: Optional[PositiveFloat] = None
-    take_profit: Optional[PositiveFloat] = None
-    rationale: Optional[str] = None
+    stop: PositiveFloat | None = None
+    take_profit: PositiveFloat | None = None
+    rationale: str | None = None
 
     @model_validator(mode="after")
-    def validate_market_price(self) -> "ProposedTrade":
+    def validate_market_price(self) -> ProposedTrade:
         if self.order_type == OrderType.MARKET and self.price is not None:
             raise ValueError("price must be omitted for market orders")
         if self.order_type != OrderType.MARKET and self.price is None:
@@ -81,7 +81,7 @@ class ConstraintsChecked(BaseModel):
 
 
 class Plan(BaseModel):
-    actions: List[PlanAction]
+    actions: list[PlanAction]
     risk_summary: str
     constraints_checked: ConstraintsChecked
     decision_id: str = Field(pattern=r"^[0-9a-fA-F-]{36}$")

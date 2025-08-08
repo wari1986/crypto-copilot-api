@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 
 
 async def run_periodic(task: Callable[[], Awaitable[None]], interval_seconds: int) -> None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.core.config import settings
-
 
 _engine: AsyncEngine | None = None
 _session_maker: async_sessionmaker[AsyncSession] | None = None
@@ -22,7 +21,7 @@ def _ensure_session_factory() -> async_sessionmaker[AsyncSession]:
         _engine = create_async_engine(settings.database_url, pool_pre_ping=True)
     if _session_maker is None:
         _session_maker = async_sessionmaker(
-            _engine, expire_on_commit=False, autoflush=False, autocommit=False
+            _engine, expire_on_commit=False, autoflush=False, autocommit=False,
         )
     return _session_maker
 

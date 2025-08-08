@@ -2,24 +2,22 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import (
-    BigInteger,
+    JSON,
     Boolean,
     DateTime,
     Enum,
     Float,
     ForeignKey,
+    Index,
     Integer,
-    JSON,
-    Numeric,
     String,
     Text,
     UniqueConstraint,
-    Index,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
@@ -69,7 +67,7 @@ class Instrument(TimestampMixin, Base):
     base_asset: Mapped[str] = mapped_column(String(20), nullable=False)
     quote_asset: Mapped[str] = mapped_column(String(20), nullable=False)
     exchange: Mapped[Exchange] = mapped_column(
-        Enum(Exchange, name="exchange_enum", native_enum=False), nullable=False
+        Enum(Exchange, name="exchange_enum", native_enum=False), nullable=False,
     )
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="TRADING")
     tick_size: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
@@ -87,10 +85,10 @@ class Candle(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     instrument_id: Mapped[int] = mapped_column(
-        ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False
+        ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False,
     )
     interval: Mapped[CandleInterval] = mapped_column(
-        Enum(CandleInterval, name="candle_interval_enum", native_enum=False), nullable=False
+        Enum(CandleInterval, name="candle_interval_enum", native_enum=False), nullable=False,
     )
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     open: Mapped[float] = mapped_column(Float, nullable=False)
@@ -111,28 +109,28 @@ class Order(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     client_order_id: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     instrument_id: Mapped[int] = mapped_column(
-        ForeignKey("instruments.id", ondelete="RESTRICT"), nullable=False
+        ForeignKey("instruments.id", ondelete="RESTRICT"), nullable=False,
     )
     side: Mapped[OrderSide] = mapped_column(
-        Enum(OrderSide, name="order_side_enum", native_enum=False), nullable=False
+        Enum(OrderSide, name="order_side_enum", native_enum=False), nullable=False,
     )
     type: Mapped[OrderType] = mapped_column(
-        Enum(OrderType, name="order_type_enum", native_enum=False), nullable=False
+        Enum(OrderType, name="order_type_enum", native_enum=False), nullable=False,
     )
     qty: Mapped[float] = mapped_column(Float, nullable=False)
-    price: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    price: Mapped[float | None] = mapped_column(Float, nullable=True)
     status: Mapped[OrderStatus] = mapped_column(
         Enum(OrderStatus, name="order_status_enum", native_enum=False),
         nullable=False,
         default=OrderStatus.NEW,
     )
-    exchange_order_id: Mapped[Optional[str]] = mapped_column(String(64), nullable=True)
+    exchange_order_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     meta: Mapped[dict[str, Any] | None] = mapped_column(
-        JSONB().with_variant(JSON, "sqlite"), nullable=True
+        JSONB().with_variant(JSON, "sqlite"), nullable=True,
     )
 
-    fills: Mapped[list["Fill"]] = relationship(
-        "Fill", back_populates="order", cascade="all, delete-orphan"
+    fills: Mapped[list[Fill]] = relationship(
+        "Fill", back_populates="order", cascade="all, delete-orphan",
     )
 
 
@@ -141,7 +139,7 @@ class Fill(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     order_id: Mapped[int] = mapped_column(
-        ForeignKey("orders.id", ondelete="CASCADE"), nullable=False
+        ForeignKey("orders.id", ondelete="CASCADE"), nullable=False,
     )
     price: Mapped[float] = mapped_column(Float, nullable=False)
     qty: Mapped[float] = mapped_column(Float, nullable=False)
@@ -149,7 +147,7 @@ class Fill(TimestampMixin, Base):
     fee_asset: Mapped[str] = mapped_column(String(20), nullable=False, default="")
     ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    order: Mapped["Order"] = relationship("Order", back_populates="fills")
+    order: Mapped[Order] = relationship("Order", back_populates="fills")
 
 
 class Position(TimestampMixin, Base):
@@ -157,10 +155,10 @@ class Position(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     instrument_id: Mapped[int] = mapped_column(
-        ForeignKey("instruments.id", ondelete="RESTRICT"), nullable=False
+        ForeignKey("instruments.id", ondelete="RESTRICT"), nullable=False,
     )
     side: Mapped[PositionSide] = mapped_column(
-        Enum(PositionSide, name="position_side_enum", native_enum=False), nullable=False
+        Enum(PositionSide, name="position_side_enum", native_enum=False), nullable=False,
     )
     qty: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     avg_price: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
@@ -176,7 +174,7 @@ class Config(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     key: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     value: Mapped[dict[str, Any] | None] = mapped_column(
-        JSONB().with_variant(JSON, "sqlite"), nullable=True
+        JSONB().with_variant(JSON, "sqlite"), nullable=True,
     )
 
 
@@ -185,15 +183,15 @@ class ModelDecision(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     ts: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False, default=datetime.utcnow
+        DateTime(timezone=True), nullable=False, default=datetime.utcnow,
     )
     request_id: Mapped[str] = mapped_column(String(36), nullable=False)
     input_context_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     decision_json: Mapped[dict[str, Any] | None] = mapped_column(
-        JSONB().with_variant(JSON, "sqlite"), nullable=True
+        JSONB().with_variant(JSON, "sqlite"), nullable=True,
     )
     valid: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    rejection_reason: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    signoff_user: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    rejection_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    signoff_user: Mapped[str | None] = mapped_column(String(100), nullable=True)
     applied: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    applied_ts: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
+    applied_ts: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
