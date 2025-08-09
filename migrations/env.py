@@ -32,7 +32,14 @@ def run_migrations_online() -> None:
     section = config.get_section(config.config_ini_section)
     if section is None:
         section = {}
-    section["sqlalchemy.url"] = os.getenv("DATABASE_URL", section.get("sqlalchemy.url", ""))
+    url = os.getenv("DATABASE_URL", section.get("sqlalchemy.url", ""))
+    # Use a synchronous driver for Alembic (avoid async/greenlet issues)
+    if url.startswith("postgresql+asyncpg://"):
+        url = "postgresql+psycopg://" + url.split("postgresql+asyncpg://", 1)[1]
+    # Translate asyncpg-specific ssl flag to libpq style for psycopg
+    if "ssl=true" in url and "sslmode=" not in url:
+        url = url.replace("ssl=true", "sslmode=require")
+    section["sqlalchemy.url"] = url
     connectable = engine_from_config(
         section,
         prefix="sqlalchemy.",
