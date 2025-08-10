@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from decimal import Decimal
-from typing import Any, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +18,7 @@ class InstrumentsRepository:
             venue = row.get("venue", "bybit")
             symbol = row["symbol"]
             result = await self._db.execute(
-                select(Instrument).where(Instrument.venue == venue, Instrument.symbol == symbol)
+                select(Instrument).where(Instrument.venue == venue, Instrument.symbol == symbol),
             )
             inst = result.scalar_one_or_none()
             if inst is None:
@@ -60,7 +60,7 @@ class InstrumentsRepository:
                         maker_fee_bps=row.get("maker_fee_bps"),
                         taker_fee_bps=row.get("taker_fee_bps"),
                         max_leverage=row.get("max_leverage"),
-                    )
+                    ),
                 )
         await self._db.commit()
 
@@ -68,7 +68,7 @@ class InstrumentsRepository:
         res = await self._db.execute(select(Instrument).where(Instrument.type == "spot"))
         return list(res.scalars().all())
 
-    async def get_by_symbol(self, symbol: str) -> Optional[Instrument]:
+    async def get_by_symbol(self, symbol: str) -> Instrument | None:
         res = await self._db.execute(select(Instrument).where(Instrument.symbol == symbol))
         return res.scalar_one_or_none()
 

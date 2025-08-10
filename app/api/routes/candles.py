@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from pydantic import BaseModel
+
 from app.api.deps import DbSessionDep
 from app.db.repositories.ohlcv import OhlcvRepository
 
@@ -24,13 +25,13 @@ async def backfill(_: BackfillRequest) -> dict[str, str]:
 
 @router.get("/1m")
 async def get_ohlcv_1m(
-    symbol: str = Query(...),
-    start: datetime | None = Query(None),
-    end: datetime | None = Query(None),
-    limit: int = Query(1000, ge=1, le=5000),
-    db: DbSessionDep | None = None,
+    symbol: str,
+    start: datetime | None = None,
+    end: datetime | None = None,
+    limit: int = 1000,
+    db: DbSessionDep = None,  # type: ignore[assignment]
 ):
-    assert db is not None
+    # FastAPI injects DbSessionDep; ignore typing default for linter.
     rows = await OhlcvRepository(db).fetch_ohlcv_1m(symbol, start, end, limit)
     return [
         {

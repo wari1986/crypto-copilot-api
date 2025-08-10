@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import datetime
-from typing import Iterable, Optional
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
@@ -34,7 +34,7 @@ class TradesRepository:
         await self._db.commit()
 
     async def get_recent(
-        self, symbol: str, limit: int = 200, since_ts: Optional[datetime] = None
+        self, symbol: str, limit: int = 200, since_ts: datetime | None = None,
     ) -> list[TradeRT]:
         sub = select(Instrument.id).where(Instrument.symbol == symbol).scalar_subquery()
         q = select(TradeRT).where(TradeRT.instrument_id == sub)

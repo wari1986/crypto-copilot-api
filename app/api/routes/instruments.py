@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Query
+
 from app.api.deps import DbSessionDep
 from app.db.repositories.instruments import InstrumentsRepository
 

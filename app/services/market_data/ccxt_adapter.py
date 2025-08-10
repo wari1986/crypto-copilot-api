@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Any
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from typing import Any
 
 import ccxt.async_support as ccxt
 
@@ -85,31 +85,35 @@ class CcxtAdapter:
                     "maker_fee_bps": maker,
                     "taker_fee_bps": taker,
                     "max_leverage": None,
-                }
+                },
             )
         return rows
 
-    async def backfill_ohlcv_1m(self, symbol: str, lookback_days: int, page_limit: int = 1000) -> list[dict[str, Any]]:
-        now = datetime.now(timezone.utc)
+    async def backfill_ohlcv_1m(
+        self, symbol: str, lookback_days: int, page_limit: int = 1000
+    ) -> list[dict[str, Any]]:
+        now = datetime.now(UTC)
         since = int((now - timedelta(days=lookback_days)).timestamp() * 1000)
         out: list[dict[str, Any]] = []
         while True:
-            candles = await self._client.fetch_ohlcv(symbol, timeframe="1m", since=since, limit=page_limit)
+            candles = await self._client.fetch_ohlcv(
+                symbol, timeframe="1m", since=since, limit=page_limit
+            )
             if not candles:
                 break
             for c in candles:
-                ts = datetime.fromtimestamp(c[0] / 1000, tz=timezone.utc)
-                o, h, l, cl, vol = map(lambda x: Decimal(str(x)), c[1:6])
+                ts = datetime.fromtimestamp(c[0] / 1000, tz=UTC)
+                o, h, low, cl, vol = map(lambda x: Decimal(str(x)), c[1:6])
                 out.append(
                     {
                         "ts": ts,
                         "open": o,
                         "high": h,
-                        "low": l,
+                        "low": low,
                         "close": cl,
                         "volume_base": vol,
                         "turnover_quote": vol * cl,
-                    }
+                    },
                 )
             since = candles[-1][0] + 1
         return out

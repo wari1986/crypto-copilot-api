@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from alembic import op
 import sqlalchemy as sa
-
+from alembic import op
 
 revision = "0002_market_data"
 down_revision = "0001_initial"
@@ -26,15 +25,18 @@ def upgrade() -> None:
     op.add_column("instruments", sa.Column("max_leverage", sa.Numeric(38, 18), nullable=True))
     op.create_unique_constraint("uq_instrument_venue_symbol", "instruments", ["venue", "symbol"])
 
-    # Enums
-    op.execute("CREATE TYPE ob_side_enum AS ENUM ('bid','ask')")
-    op.execute("CREATE TYPE trade_side_enum AS ENUM ('buy','sell')")
+    # Enums will be created implicitly by SQLAlchemy when creating tables below
 
     # OHLCV 1m
     op.create_table(
         "ohlcv_1m",
         sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("instrument_id", sa.Integer(), sa.ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "instrument_id",
+            sa.Integer(),
+            sa.ForeignKey("instruments.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("ts", sa.DateTime(timezone=True), nullable=False),
         sa.Column("open", sa.Numeric(38, 18), nullable=False),
         sa.Column("high", sa.Numeric(38, 18), nullable=False),
@@ -42,8 +44,12 @@ def upgrade() -> None:
         sa.Column("close", sa.Numeric(38, 18), nullable=False),
         sa.Column("volume_base", sa.Numeric(38, 18), nullable=False),
         sa.Column("turnover_quote", sa.Numeric(38, 18), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
+        ),
         sa.UniqueConstraint("instrument_id", "ts", name="uq_ohlcv1m_unique"),
     )
     op.create_index("ix_ohlcv1m_ts", "ohlcv_1m", ["ts"])
@@ -52,7 +58,12 @@ def upgrade() -> None:
     op.create_table(
         "ticker_rt",
         sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("instrument_id", sa.Integer(), sa.ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "instrument_id",
+            sa.Integer(),
+            sa.ForeignKey("instruments.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("ts", sa.DateTime(timezone=True), nullable=False),
         sa.Column("last", sa.Numeric(38, 18), nullable=False),
         sa.Column("bid", sa.Numeric(38, 18), nullable=False),
@@ -62,8 +73,12 @@ def upgrade() -> None:
         sa.Column("day_vol_quote", sa.Numeric(38, 18), nullable=True),
         sa.Column("mark", sa.Numeric(38, 18), nullable=True),
         sa.Column("index", sa.Numeric(38, 18), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
+        ),
     )
     op.create_index("ix_tickerrt_ts", "ticker_rt", ["ts"])
 
@@ -71,15 +86,24 @@ def upgrade() -> None:
     op.create_table(
         "orderbook_l2",
         sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("instrument_id", sa.Integer(), sa.ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "instrument_id",
+            sa.Integer(),
+            sa.ForeignKey("instruments.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("ts", sa.DateTime(timezone=True), nullable=False),
         sa.Column("side", sa.Enum("bid", "ask", name="ob_side_enum"), nullable=False),
         sa.Column("px", sa.Numeric(38, 18), nullable=False),
         sa.Column("qty", sa.Numeric(38, 18), nullable=False),
         sa.Column("snapshot_id", sa.String(length=36), nullable=True),
         sa.Column("update_id", sa.BigInteger(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
+        ),
     )
     op.create_index("ix_ob_l2_instr_ts_side", "orderbook_l2", ["instrument_id", "ts", "side"])
 
@@ -87,14 +111,23 @@ def upgrade() -> None:
     op.create_table(
         "trade_rt",
         sa.Column("id", sa.Integer(), primary_key=True),
-        sa.Column("instrument_id", sa.Integer(), sa.ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False),
+        sa.Column(
+            "instrument_id",
+            sa.Integer(),
+            sa.ForeignKey("instruments.id", ondelete="CASCADE"),
+            nullable=False,
+        ),
         sa.Column("ts", sa.DateTime(timezone=True), nullable=False),
         sa.Column("px", sa.Numeric(38, 18), nullable=False),
         sa.Column("qty", sa.Numeric(38, 18), nullable=False),
         sa.Column("side", sa.Enum("buy", "sell", name="trade_side_enum"), nullable=False),
         sa.Column("trade_id", sa.String(length=100), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
+        sa.Column(
+            "created_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
+        ),
+        sa.Column(
+            "updated_at", sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False,
+        ),
         sa.UniqueConstraint("instrument_id", "trade_id", name="uq_trade_rt_unique"),
     )
     op.create_index("ix_tradert_ts", "trade_rt", ["ts"])
@@ -127,5 +160,3 @@ def downgrade() -> None:
         "max_leverage",
     ]:
         op.drop_column("instruments", col)
-
-

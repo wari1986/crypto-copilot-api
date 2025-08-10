@@ -29,7 +29,7 @@ class TickersRepository:
     async def get_latest(self, symbol: str) -> TickerRT | None:
         sub = select(Instrument.id).where(Instrument.symbol == symbol).scalar_subquery()
         res = await self._db.execute(
-            select(TickerRT).where(TickerRT.instrument_id == sub).order_by(TickerRT.ts.desc()).limit(1)
+            select(TickerRT).where(TickerRT.instrument_id == sub).order_by(TickerRT.ts.desc()).limit(1),
         )
         return res.scalar_one_or_none()
 

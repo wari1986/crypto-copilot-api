@@ -3,7 +3,7 @@ from __future__ import annotations
 import enum
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -78,18 +78,18 @@ class Instrument(TimestampMixin, Base):
     min_notional: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
     # Spot market data extensions (nullable for compatibility)
-    venue: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, default="bybit")
-    type: Mapped[Optional[str]] = mapped_column(String(10), nullable=True, default="spot")
-    settlement: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    tick_size_num: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
-    lot_size_num: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
-    min_notional_num: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
-    contract_size: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
-    price_scale: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    qty_scale: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    maker_fee_bps: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
-    taker_fee_bps: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
-    max_leverage: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    venue: Mapped[str | None] = mapped_column(String(20), nullable=True, default="bybit")
+    type: Mapped[str | None] = mapped_column(String(10), nullable=True, default="spot")
+    settlement: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    tick_size_num: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
+    lot_size_num: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
+    min_notional_num: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
+    contract_size: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
+    price_scale: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    qty_scale: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    maker_fee_bps: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
+    taker_fee_bps: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
+    max_leverage: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("symbol", "exchange", name="uq_instrument_symbol_exchange"),
@@ -123,7 +123,7 @@ class OHLCV1m(TimestampMixin, Base):
     low: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
     close: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
     volume_base: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
-    turnover_quote: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    turnover_quote: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
 
     __table_args__ = (
         UniqueConstraint("instrument_id", "ts", name="uq_ohlcv1m_unique"),
@@ -144,9 +144,9 @@ class TickerRT(TimestampMixin, Base):
     ask: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
     mid: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
     spread_bps: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
-    day_vol_quote: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
-    mark: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
-    index: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    day_vol_quote: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
+    mark: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
+    index: Mapped[Decimal | None] = mapped_column(Numeric(38, 18), nullable=True)
 
     __table_args__ = (Index("ix_tickerrt_ts", "ts"),)
 
@@ -169,8 +169,8 @@ class OrderBookL2(TimestampMixin, Base):
     )
     px: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
     qty: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
-    snapshot_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
-    update_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+    snapshot_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    update_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
 
     __table_args__ = (Index("ix_ob_l2_instr_ts_side", "instrument_id", "ts", "side"),)
 

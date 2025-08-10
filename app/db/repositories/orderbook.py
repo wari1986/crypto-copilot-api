@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Iterable
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -31,7 +30,7 @@ class OrderBookRepository:
                     px=px,
                     qty=qty,
                     snapshot_id=snapshot_id,
-                )
+                ),
             )
         for px, qty in asks:
             self._db.add(
@@ -42,12 +41,12 @@ class OrderBookRepository:
                     px=px,
                     qty=qty,
                     snapshot_id=snapshot_id,
-                )
+                ),
             )
         await self._db.commit()
 
     async def write_delta(
-        self, instrument_id: int, update_id: int | None, side: str, px, qty, ts: datetime
+        self, instrument_id: int, update_id: int | None, side: str, px, qty, ts: datetime,
     ) -> None:
         self._db.add(
             OrderBookL2(
@@ -57,7 +56,7 @@ class OrderBookRepository:
                 px=px,
                 qty=qty,
                 update_id=update_id,
-            )
+            ),
         )
         await self._db.commit()
 
@@ -68,7 +67,7 @@ class OrderBookRepository:
             select(OrderBookL2.ts)
             .where(OrderBookL2.instrument_id == sub, OrderBookL2.snapshot_id.is_not(None))
             .order_by(OrderBookL2.ts.desc())
-            .limit(1)
+            .limit(1),
         )
         latest_ts = res.scalar_one_or_none()
         if latest_ts is None:
@@ -82,7 +81,7 @@ class OrderBookRepository:
                 OrderBookL2.side == OBSide.bid,
             )
             .order_by(OrderBookL2.px.desc())
-            .limit(limit_per_side)
+            .limit(limit_per_side),
         )
         asks = await self._db.execute(
             select(OrderBookL2)
@@ -92,7 +91,7 @@ class OrderBookRepository:
                 OrderBookL2.side == OBSide.ask,
             )
             .order_by(OrderBookL2.px.asc())
-            .limit(limit_per_side)
+            .limit(limit_per_side),
         )
         return {
             "bids": [(r.px, r.qty) for r in bids.scalars().all()],
