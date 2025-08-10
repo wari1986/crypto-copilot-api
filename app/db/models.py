@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
-from typing import Any
+from decimal import Decimal
+from typing import Any, Optional
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     Boolean,
     DateTime,
     Enum,
@@ -13,6 +15,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -74,8 +77,23 @@ class Instrument(TimestampMixin, Base):
     step_size: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
     min_notional: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
 
+    # Spot market data extensions (nullable for compatibility)
+    venue: Mapped[Optional[str]] = mapped_column(String(20), nullable=True, default="bybit")
+    type: Mapped[Optional[str]] = mapped_column(String(10), nullable=True, default="spot")
+    settlement: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    tick_size_num: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    lot_size_num: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    min_notional_num: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    contract_size: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    price_scale: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    qty_scale: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    maker_fee_bps: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    taker_fee_bps: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    max_leverage: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+
     __table_args__ = (
         UniqueConstraint("symbol", "exchange", name="uq_instrument_symbol_exchange"),
+        UniqueConstraint("venue", "symbol", name="uq_instrument_venue_symbol"),
         Index("ix_instruments_symbol", "symbol"),
     )
 
@@ -86,6 +104,100 @@ class Candle(TimestampMixin, Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     instrument_id: Mapped[int] = mapped_column(
         ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False,
+    )
+
+
+# Spot-only market data tables (v1)
+
+
+class OHLCV1m(TimestampMixin, Base):
+    __tablename__ = "ohlcv_1m"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    instrument_id: Mapped[int] = mapped_column(
+        ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False,
+    )
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    open: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    high: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    low: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    close: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    volume_base: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    turnover_quote: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("instrument_id", "ts", name="uq_ohlcv1m_unique"),
+        Index("ix_ohlcv1m_ts", "ts"),
+    )
+
+
+class TickerRT(TimestampMixin, Base):
+    __tablename__ = "ticker_rt"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    instrument_id: Mapped[int] = mapped_column(
+        ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False,
+    )
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    bid: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    ask: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    mid: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    spread_bps: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    day_vol_quote: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    mark: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+    index: Mapped[Optional[Decimal]] = mapped_column(Numeric(38, 18), nullable=True)
+
+    __table_args__ = (Index("ix_tickerrt_ts", "ts"),)
+
+
+class OBSide(str, enum.Enum):
+    bid = "bid"
+    ask = "ask"
+
+
+class OrderBookL2(TimestampMixin, Base):
+    __tablename__ = "orderbook_l2"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    instrument_id: Mapped[int] = mapped_column(
+        ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False,
+    )
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    side: Mapped[OBSide] = mapped_column(
+        Enum(OBSide, name="ob_side_enum", native_enum=False), nullable=False,
+    )
+    px: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    qty: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    snapshot_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    update_id: Mapped[Optional[int]] = mapped_column(BigInteger, nullable=True)
+
+    __table_args__ = (Index("ix_ob_l2_instr_ts_side", "instrument_id", "ts", "side"),)
+
+
+class TradeSide(str, enum.Enum):
+    buy = "buy"
+    sell = "sell"
+
+
+class TradeRT(TimestampMixin, Base):
+    __tablename__ = "trade_rt"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    instrument_id: Mapped[int] = mapped_column(
+        ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False,
+    )
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    px: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    qty: Mapped[Decimal] = mapped_column(Numeric(38, 18), nullable=False)
+    side: Mapped[TradeSide] = mapped_column(
+        Enum(TradeSide, name="trade_side_enum", native_enum=False), nullable=False,
+    )
+    trade_id: Mapped[str] = mapped_column(String(100), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("instrument_id", "trade_id", name="uq_trade_rt_unique"),
+        Index("ix_tradert_ts", "ts"),
     )
     interval: Mapped[CandleInterval] = mapped_column(
         Enum(CandleInterval, name="candle_interval_enum", native_enum=False), nullable=False,

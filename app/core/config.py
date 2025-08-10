@@ -29,6 +29,19 @@ class Settings(BaseSettings):
     openai_model: str = Field(default="gpt-5", alias="OPENAI_MODEL")
     openai_timeout_seconds: int = Field(default=60, alias="OPENAI_TIMEOUT_SECONDS")
 
+    # Market data configuration (spot-only v1)
+    exchange: str = Field(default="bybit", alias="EXCHANGE")
+    spot_only: bool = Field(default=True, alias="SPOT_ONLY")
+    symbols: str = Field(default="BTC/USDT,ETH/USDT,SOL/USDT", alias="SYMBOLS")
+    ws_orderbook_levels: int = Field(default=50, alias="WS_ORDERBOOK_LEVELS")
+    ws_snapshot_interval_sec: int = Field(default=30, alias="WS_SNAPSHOT_INTERVAL_SEC")
+    backfill_lookback_days: int = Field(default=120, alias="BACKFILL_LOOKBACK_DAYS")
+    ws_public_url: str = Field(default="wss://stream.bybit.com/v5/public/spot", alias="WS_PUBLIC_URL")
+
+    @property
+    def symbols_list(self) -> list[str]:
+        return [s.strip() for s in self.symbols.split(",") if s.strip()]
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:

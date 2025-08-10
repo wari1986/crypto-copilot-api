@@ -7,6 +7,7 @@ from app.api.routes.exec_sim import router as exec_sim_router
 from app.api.routes.health import router as health_router
 from app.api.routes.instruments import router as instruments_router
 from app.api.routes.llm_decider import router as llm_router
+from app.api.routes.marketdata import router as marketdata_router
 from app.api.routes.portfolio import router as portfolio_router
 from app.core.config import settings
 from app.core.errors import setup_exception_handlers
@@ -24,6 +25,7 @@ app.include_router(candles_router, prefix="/api/v1")
 app.include_router(portfolio_router, prefix="/api/v1")
 app.include_router(exec_sim_router, prefix="/api/v1")
 app.include_router(llm_router, prefix="/api/v1")
+app.include_router(marketdata_router, prefix="/api/v1")
 
 
 @app.get("/")
