@@ -3,28 +3,34 @@ from __future__ import annotations
 import asyncio
 from collections import deque
 from dataclasses import dataclass, field
+from decimal import Decimal
 
 
 @dataclass
 class OrderbookSnapshot:
-    bids: list[tuple[float, float]]  # price, qty
-    asks: list[tuple[float, float]]
+    bids: list[tuple[Decimal, Decimal]]  # price, qty
+    asks: list[tuple[Decimal, Decimal]]
 
 
 @dataclass
 class MarketCache:
     orderbooks: dict[str, OrderbookSnapshot] = field(default_factory=dict)
-    trades: dict[str, deque[tuple[float, float]]] = field(default_factory=dict)  # (price, qty)
+    trades: dict[str, deque[tuple[Decimal, Decimal]]] = field(default_factory=dict)  # (price, qty)
+    tickers: dict[str, dict] = field(default_factory=dict)
     _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     async def set_orderbook(self, symbol: str, snapshot: OrderbookSnapshot) -> None:
         async with self._lock:
             self.orderbooks[symbol] = snapshot
 
-    async def append_trade(self, symbol: str, price: float, qty: float, maxlen: int = 1000) -> None:
+    async def append_trade(self, symbol: str, price: Decimal, qty: Decimal, maxlen: int = 1000) -> None:
         async with self._lock:
             dq = self.trades.setdefault(symbol, deque(maxlen=maxlen))
             dq.append((price, qty))
+
+    async def set_ticker(self, symbol: str, ticker: dict) -> None:
+        async with self._lock:
+            self.tickers[symbol] = ticker
 
 
 def atr(candles: list[dict], period: int = 14, method: str = "RMA") -> float:

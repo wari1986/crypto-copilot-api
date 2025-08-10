@@ -13,6 +13,7 @@ from app.core.config import settings
 from app.core.errors import setup_exception_handlers
 from app.core.logging import configure_logging
 from app.core.security import setup_cors
+from app.workers.scheduler import start_market_data_tasks
 
 configure_logging(settings.log_level)
 app = FastAPI(title="Crypto Copilot API", version="0.1.0", openapi_url="/openapi.json")
@@ -31,3 +32,9 @@ app.include_router(marketdata_router, prefix="/api/v1")
 @app.get("/")
 async def root() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.on_event("startup")
+async def _startup() -> None:
+    # Fire-and-forget; tasks manage their own lifecycle
+    await start_market_data_tasks()
