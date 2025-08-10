@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal, Union
+from typing import Literal
 
 from pydantic import BaseModel, Field, PositiveFloat, model_validator
 
@@ -70,7 +70,7 @@ class ProposedTrade(BaseModel):
         return self
 
 
-PlanAction = Union[ProposedTrade, CancelAction, MoveStopAction, FlattenAction]
+PlanAction = ProposedTrade | CancelAction | MoveStopAction | FlattenAction
 
 
 class ConstraintsChecked(BaseModel):

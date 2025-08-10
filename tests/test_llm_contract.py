@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from app.schemas.llm_contract import OrderSide, OrderType, Plan, ProposedTrade, TimeInForce
 
@@ -25,7 +26,7 @@ def test_plan_valid_schema() -> None:
 
 
 def test_market_with_price_rejected() -> None:
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         ProposedTrade(
             instrument_symbol="BTC/USDT",
             side=OrderSide.BUY,
