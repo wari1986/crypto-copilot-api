@@ -90,14 +90,14 @@ class CcxtAdapter:
         return rows
 
     async def backfill_ohlcv_1m(
-        self, symbol: str, lookback_days: int, page_limit: int = 1000
+        self, symbol: str, lookback_days: int, page_limit: int = 1000,
     ) -> list[dict[str, Any]]:
         now = datetime.now(UTC)
         since = int((now - timedelta(days=lookback_days)).timestamp() * 1000)
         out: list[dict[str, Any]] = []
         while True:
             candles = await self._client.fetch_ohlcv(
-                symbol, timeframe="1m", since=since, limit=page_limit
+                symbol, timeframe="1m", since=since, limit=page_limit,
             )
             if not candles:
                 break

@@ -13,11 +13,18 @@ class Settings(BaseSettings):
     env: Literal["dev", "prod", "test"] = Field(default="dev", alias="ENV")
     api_port: int = Field(default=8000, alias="API_PORT")
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = Field(
-        default="INFO", alias="LOG_LEVEL",
+        default="INFO",
+        alias="LOG_LEVEL",
     )
 
     # Default to in-memory SQLite for local dev/tests to avoid requiring Postgres at import time
     database_url: str = Field(default="sqlite+aiosqlite:///:memory:", alias="DATABASE_URL")
+
+    # Database pool configuration (tuned for serverless Postgres like Supabase)
+    db_pool_size: int = Field(default=5, alias="DB_POOL_SIZE")
+    db_max_overflow: int = Field(default=5, alias="DB_MAX_OVERFLOW")
+    db_pool_timeout: int = Field(default=30, alias="DB_POOL_TIMEOUT")
+    db_pool_recycle_seconds: int = Field(default=1800, alias="DB_POOL_RECYCLE_SECONDS")
 
     ccxt_rate_limit: bool = Field(default=True, alias="CCXT_RATE_LIMIT")
 
@@ -36,7 +43,13 @@ class Settings(BaseSettings):
     ws_orderbook_levels: int = Field(default=50, alias="WS_ORDERBOOK_LEVELS")
     ws_snapshot_interval_sec: int = Field(default=30, alias="WS_SNAPSHOT_INTERVAL_SEC")
     backfill_lookback_days: int = Field(default=120, alias="BACKFILL_LOOKBACK_DAYS")
-    ws_public_url: str = Field(default="wss://stream.bybit.com/v5/public/spot", alias="WS_PUBLIC_URL")
+    ws_public_url: str = Field(
+        default="wss://stream.bybit.com/v5/public/spot", alias="WS_PUBLIC_URL"
+    )
+
+    # Ingestion/worker feature flags
+    enable_market_data_tasks: bool = Field(default=False, alias="ENABLE_MARKET_DATA_TASKS")
+    enable_backfill_on_startup: bool = Field(default=False, alias="ENABLE_BACKFILL_ON_STARTUP")
 
     @property
     def symbols_list(self) -> list[str]:

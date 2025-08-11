@@ -101,7 +101,9 @@ class BybitWs:
 
         await self._run(topics, on_ob)
 
-    async def _process_ob_snapshot(self, data: dict[str, Any], ts: datetime, db_session_factory) -> None:
+    async def _process_ob_snapshot(
+        self, data: dict[str, Any], ts: datetime, db_session_factory
+    ) -> None:
         symbol = to_ccxt_symbol(data.get("s") or data.get("symbol"))
         bids = [(Decimal(px), Decimal(qty)) for px, qty in data.get("b", [])]
         asks = [(Decimal(px), Decimal(qty)) for px, qty in data.get("a", [])]
@@ -118,7 +120,9 @@ class BybitWs:
                 return
             await OrderBookRepository(db).write_snapshot(inst_id, snapshot_id, bids, asks, ts)
 
-    async def _process_ob_delta(self, data: dict[str, Any], ts: datetime, db_session_factory) -> None:
+    async def _process_ob_delta(
+        self, data: dict[str, Any], ts: datetime, db_session_factory
+    ) -> None:
         symbol = to_ccxt_symbol(data.get("s") or data.get("symbol"))
         update_id = data.get("u")
         bids = [(Decimal(px), Decimal(qty)) for px, qty in data.get("b", [])]
@@ -132,11 +136,9 @@ class BybitWs:
             inst_id = res.scalar_one_or_none()
             if inst_id is None:
                 return
+            # Batch deltas in a single transaction to reduce commit frequency
             repo = OrderBookRepository(db)
-            for px, qty in bids:
-                await repo.write_delta(inst_id, update_id, "bid", px, qty, ts)
-            for px, qty in asks:
-                await repo.write_delta(inst_id, update_id, "ask", px, qty, ts)
+            await repo.write_deltas_batch(inst_id, update_id, bids=bids, asks=asks, ts=ts)
 
     async def start_trades(self, symbols: list[str], db_session_factory) -> None:
         topics = [f"publicTrade.{s.replace('/', '')}" for s in symbols]

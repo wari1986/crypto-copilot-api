@@ -46,7 +46,13 @@ class OrderBookRepository:
         await self._db.commit()
 
     async def write_delta(
-        self, instrument_id: int, update_id: int | None, side: str, px, qty, ts: datetime,
+        self,
+        instrument_id: int,
+        update_id: int | None,
+        side: str,
+        px,
+        qty,
+        ts: datetime,
     ) -> None:
         self._db.add(
             OrderBookL2(
@@ -58,6 +64,39 @@ class OrderBookRepository:
                 update_id=update_id,
             ),
         )
+        await self._db.commit()
+
+    async def write_deltas_batch(
+        self,
+        instrument_id: int,
+        update_id: int | None,
+        *,
+        bids: list[tuple],
+        asks: list[tuple],
+        ts: datetime,
+    ) -> None:
+        for px, qty in bids:
+            self._db.add(
+                OrderBookL2(
+                    instrument_id=instrument_id,
+                    ts=ts,
+                    side=OBSide.bid,
+                    px=px,
+                    qty=qty,
+                    update_id=update_id,
+                ),
+            )
+        for px, qty in asks:
+            self._db.add(
+                OrderBookL2(
+                    instrument_id=instrument_id,
+                    ts=ts,
+                    side=OBSide.ask,
+                    px=px,
+                    qty=qty,
+                    update_id=update_id,
+                ),
+            )
         await self._db.commit()
 
     async def get_latest_snapshot(self, symbol: str, limit_per_side: int) -> dict:
@@ -98,5 +137,3 @@ class OrderBookRepository:
             "asks": [(r.px, r.qty) for r in asks.scalars().all()],
             "ts": latest_ts,
         }
-
-

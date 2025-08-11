@@ -3,7 +3,8 @@ from __future__ import annotations
 from collections.abc import Iterable
 from datetime import datetime
 
-from sqlalchemy import insert, select
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.models import Instrument, OHLCV1m
@@ -35,7 +36,11 @@ class OhlcvRepository:
         await self._db.commit()
 
     async def fetch_ohlcv_1m(
-        self, symbol: str, start: datetime | None, end: datetime | None, limit: int = 1000,
+        self,
+        symbol: str,
+        start: datetime | None,
+        end: datetime | None,
+        limit: int = 1000,
     ) -> list[OHLCV1m]:
         sub = select(Instrument.id).where(Instrument.symbol == symbol).scalar_subquery()
         q = select(OHLCV1m).where(OHLCV1m.instrument_id == sub)
@@ -46,5 +51,3 @@ class OhlcvRepository:
         q = q.order_by(OHLCV1m.ts.asc()).limit(limit)
         res = await self._db.execute(q)
         return list(res.scalars().all())
-
-

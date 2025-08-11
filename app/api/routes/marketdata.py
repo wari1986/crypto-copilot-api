@@ -41,7 +41,7 @@ async def orderbook_l2(symbol: str, limit: int = 50, db: DbSessionDep = None) ->
 
 @router.get("/trades")
 async def trades(
-    symbol: str, limit: int = 200, since: datetime | None = None, db: DbSessionDep = None
+    symbol: str, limit: int = 200, since: datetime | None = None, db: DbSessionDep = None,
 ):  # type: ignore[assignment]
     rows = await TradesRepository(db).get_recent(symbol, limit, since)
     return [
