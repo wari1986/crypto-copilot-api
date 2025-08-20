@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from app.api.deps import DbSessionDep
-from app.db.repositories.ohlcv import OhlcvRepository
+from app.services.market_data.ccxt_adapter import CcxtAdapter
 
 router = APIRouter(prefix="/candles", tags=["candles"])
 
@@ -23,25 +23,32 @@ async def backfill(_: BackfillRequest) -> dict[str, str]:
     return {"status": "enqueued"}
 
 
-@router.get("/1m")
-async def get_ohlcv_1m(
+@router.get("/")
+async def candles(
     symbol: str,
-    start: datetime | None = None,
-    end: datetime | None = None,
-    limit: int = 1000,
+    timeframe: str,
+    limit: int = 100,
+    since: datetime | None = None,
     db: DbSessionDep = None,  # type: ignore[assignment]
 ):
     # FastAPI injects DbSessionDep; ignore typing default for linter.
-    rows = await OhlcvRepository(db).fetch_ohlcv_1m(symbol, start, end, limit)
-    return [
-        {
-            "ts": r.ts,
-            "open": str(r.open),
-            "high": str(r.high),
-            "low": str(r.low),
-            "close": str(r.close),
-            "volume_base": str(r.volume_base),
-            "turnover_quote": str(r.turnover_quote) if r.turnover_quote is not None else None,
-        }
-        for r in rows
-    ]
+    """
+    ## OHLCV Candles
+
+    This endpoint retrieves historical OHLCV (Open, High, Low, Close, Volume) data
+    for a given symbol and timeframe.
+
+    - **symbol**: Trading pair symbol (e.g., 'BTC/USDT').
+    - **timeframe**: Chart timeframe (e.g., '1m', '5m', '1h', '1d').
+    - **limit**: Number of candles to retrieve.
+    - **since**: Start time for candles.
+    - **db**: Database session.
+    """
+    # if db:
+    #     repo = OHLCVRepository(db)
+    #     candles = await repo.get_candles(symbol, timeframe, limit, since)
+    #     if candles:
+    #         return candles
+    # Fallback to CCXT if not in DB or DB not available
+    adapter = CcxtAdapter()
+    return await adapter.fetch_ohlcv(symbol, timeframe, since, limit)

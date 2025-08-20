@@ -6,16 +6,14 @@ from fastapi import APIRouter
 from sqlalchemy import text
 
 from app.api.deps import DbSessionDep
+from app.core.config import settings
 
-router = APIRouter(prefix="/health", tags=["health"])
+router = APIRouter()
 
 
-@router.get("")
-async def health(db: DbSessionDep) -> dict[str, Any]:
-    # Attempt DB ping; tolerate failure in dev to keep liveness simple
-    try:
-        await db.execute(text("SELECT 1"))
-        db_status = "ok"
-    except Exception:
-        db_status = "degraded"
-    return {"status": "ok", "db": db_status}
+# @router.get("/health")
+# async def health(db: DbSessionDep) -> dict[str, Any]:
+#     """Health check endpoint."""
+#     # Check DB connection
+#     await db.execute(text("SELECT 1"))
+#     return {"status": "ok", "version": settings.version, "name": settings.project_name}

@@ -6,51 +6,44 @@ from typing import Any
 from fastapi import APIRouter
 
 from app.api.deps import DbSessionDep
-from app.db.repositories.orderbook import OrderBookRepository
-from app.db.repositories.tickers import TickersRepository
-from app.db.repositories.trades import TradesRepository
+from app.services.market_data.ccxt_adapter import CcxtAdapter
 
-router = APIRouter(prefix="/marketdata", tags=["marketdata"])
-
-
-@router.get("/ticker/latest")
-async def ticker_latest(symbol: str, db: DbSessionDep) -> dict[str, Any] | None:
-    t = await TickersRepository(db).get_latest(symbol)
-    if t is None:
-        return None
-    return {
-        "ts": t.ts,
-        "last": str(t.last),
-        "bid": str(t.bid),
-        "ask": str(t.ask),
-        "mid": str(t.mid),
-        "spread_bps": str(t.spread_bps),
-        "day_vol_quote": str(t.day_vol_quote) if t.day_vol_quote is not None else None,
-    }
+# router = APIRouter(prefix="/marketdata", tags=["Market Data"])
+router = APIRouter(prefix="/marketdata", tags=["Market Data"])
 
 
-@router.get("/orderbook/l2")
+# @router.get("/ticker/latest")
+# async def ticker_latest(symbol: str, db: DbSessionDep) -> dict[str, Any] | None:
+#     """Fetch the latest ticker for a symbol."""
+#     repo = TickerRepository(db)
+#     return await repo.get_latest_ticker(symbol)
+
+
+@router.get("/orderbook")
 async def orderbook_l2(symbol: str, limit: int = 50, db: DbSessionDep = None) -> dict[str, Any]:  # type: ignore[assignment]
-    snap = await OrderBookRepository(db).get_latest_snapshot(symbol, limit)
-    return {
-        "ts": snap["ts"],
-        "bids": [(str(px), str(qty)) for px, qty in snap["bids"]],
-        "asks": [(str(px), str(qty)) for px, qty in snap["asks"]],
-    }
+    """Fetch the latest L2 order book for a symbol."""
+    # if db:
+    #     repo = OrderBookRepository(db)
+    #     # Attempt to fetch from DB first
+    #     orderbook = await repo.get_latest_orderbook(symbol)
+    #     if orderbook:
+    #         return orderbook
+    # Fallback to CCXT if not in DB or DB not available
+    return await CcxtAdapter().fetch_l2_orderbook(symbol, limit)
 
 
 @router.get("/trades")
 async def trades(
-    symbol: str, limit: int = 200, since: datetime | None = None, db: DbSessionDep = None,
+    symbol: str,
+    limit: int = 200,
+    since: datetime | None = None,
+    db: DbSessionDep = None,
 ):  # type: ignore[assignment]
-    rows = await TradesRepository(db).get_recent(symbol, limit, since)
-    return [
-        {
-            "ts": r.ts,
-            "px": str(r.px),
-            "qty": str(r.qty),
-            "side": r.side.value,
-            "trade_id": r.trade_id,
-        }
-        for r in rows
-    ]
+    """Fetch recent trades for a symbol."""
+    # if db:
+    #     repo = TradesRepository(db)
+    #     trades_data = await repo.get_trades(symbol, limit, since)
+    #     if trades_data:
+    #         return trades_data
+    # Fallback to CCXT
+    return await CcxtAdapter().fetch_trades(symbol, since, limit)
