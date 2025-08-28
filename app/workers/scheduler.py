@@ -12,6 +12,7 @@ from app.db.session import get_session_factory
 from app.services.market_data.cache import MarketCache
 from app.services.market_data.ccxt_adapter import CcxtAdapter
 from app.services.market_data.ws_bybit import BybitWs
+from app.services.analysis import analysis_agent
 
 
 async def run_periodic(task: Callable[[], Awaitable[None]], interval_seconds: int) -> None:
@@ -66,3 +67,8 @@ async def start_market_data_tasks(
         ws.start_orderbook(settings.symbols_list, settings.ws_orderbook_levels, session_factory),
     )
     asyncio.create_task(ws.start_trades(settings.symbols_list, session_factory))
+
+    async def _run_analysis() -> None:
+        await analysis_agent.run()
+
+    asyncio.create_task(run_periodic(_run_analysis, 4 * 60 * 60))

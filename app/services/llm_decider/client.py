@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from openai import AsyncOpenAI
@@ -28,3 +29,37 @@ class LlmClient:
             },
             "decision_id": "00000000-0000-0000-0000-000000000000",
         }
+
+    async def market_analysis(self, context: dict[str, Any]) -> str:
+        """Return a market analysis based on the provided context."""
+        if settings.openai_api_key:
+            try:
+                resp = await self._client.responses.create(
+                    model=self._model,
+                    timeout=self._timeout,
+                    reasoning={"effort": "medium"},
+                    input=[
+                        {
+                            "role": "system",
+                            "content": "You are a crypto market analyst.",
+                        },
+                        {"role": "user", "content": json.dumps(context)},
+                    ],
+                )
+                content = resp.output_text
+                if content:
+                    return content
+            except Exception:
+                pass
+        # Fallback simple summary
+        parts = []
+        for sym, data in context.get("symbols", {}).items():
+            price = data.get("close")
+            sma_short = data.get("sma_short")
+            sma_long = data.get("sma_long")
+            trend = "up" if sma_short and sma_long and sma_short > sma_long else "down"
+            parts.append(f"{sym}: price {price:.2f}, trend {trend}")
+        sentiment = context.get("sentiment")
+        if sentiment:
+            parts.append(f"Sentiment: {sentiment}")
+        return " | ".join(parts)
