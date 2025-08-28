@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -119,6 +119,42 @@ class CcxtAdapter:
                     "close": cl,
                     "volume_base": vol,
                     "turnover_quote": vol * cl,
+                },
+            )
+        return out
+
+    async def fetch_l2_orderbook(self, symbol: str, limit: int = 50) -> dict[str, Any]:
+        """Fetch level 2 order book depth for a symbol."""
+        book = await self._client.fetch_order_book(symbol, limit=limit)
+        ts = book.get("timestamp")
+        ts_dt = (
+            datetime.fromtimestamp(ts / 1000, tz=UTC) if ts is not None else datetime.now(UTC)
+        )
+
+        def _convert(rows: list[list[float]]) -> list[dict[str, Decimal]]:
+            return [
+                {"price": Decimal(str(p)), "volume": Decimal(str(v))} for p, v in rows
+            ]
+
+        bids = _convert(book.get("bids", [])[:limit])
+        asks = _convert(book.get("asks", [])[:limit])
+        return {"symbol": symbol, "ts": ts_dt, "bids": bids, "asks": asks}
+
+    async def fetch_trades(
+        self, symbol: str, since: datetime | None = None, limit: int = 200,
+    ) -> list[dict[str, Any]]:
+        """Fetch recent trades for a symbol."""
+        since_ms = int(since.timestamp() * 1000) if since else None
+        trades = await self._client.fetch_trades(symbol, since=since_ms, limit=limit)
+        out: list[dict[str, Any]] = []
+        for t in trades:
+            ts = datetime.fromtimestamp(t.get("timestamp", 0) / 1000, tz=UTC)
+            out.append(
+                {
+                    "ts": ts,
+                    "price": Decimal(str(t.get("price"))),
+                    "qty": Decimal(str(t.get("amount"))),
+                    "side": t.get("side"),
                 },
             )
         return out
