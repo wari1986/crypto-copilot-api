@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
@@ -122,3 +122,38 @@ class CcxtAdapter:
                 },
             )
         return out
+
+    async def fetch_orderbook(self, symbol: str, depth: int = 50) -> dict[str, Any]:
+        ob = await self._client.fetch_order_book(symbol, limit=depth)
+        return {
+            "bids": [(Decimal(str(px)), Decimal(str(qty))) for px, qty in ob.get("bids", [])],
+            "asks": [(Decimal(str(px)), Decimal(str(qty))) for px, qty in ob.get("asks", [])],
+            "ts": datetime.fromtimestamp(ob.get("timestamp", 0) / 1000, tz=UTC)
+            if ob.get("timestamp")
+            else datetime.now(UTC),
+        }
+
+    async def fetch_trades(self, symbol: str, limit: int = 200) -> list[dict[str, Any]]:
+        trades = await self._client.fetch_trades(symbol, limit=limit)
+        out: list[dict[str, Any]] = []
+        for t in trades:
+            out.append(
+                {
+                    "ts": datetime.fromtimestamp(t.get("timestamp", 0) / 1000, tz=UTC)
+                    if t.get("timestamp")
+                    else datetime.now(UTC),
+                    "px": Decimal(str(t.get("price", 0))),
+                    "qty": Decimal(str(t.get("amount", 0))),
+                    "side": (t.get("side") or "").lower(),
+                },
+            )
+        return out
+
+    async def fetch_funding_rate(self, symbol: str) -> Decimal | None:
+        """Attempt to fetch the latest funding rate; returns None if unsupported."""
+        try:
+            fr = await self._client.fetch_funding_rate(symbol)
+            rate = fr.get("fundingRate")
+            return Decimal(str(rate)) if rate is not None else None
+        except Exception:
+            return None
