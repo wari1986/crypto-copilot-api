@@ -4,12 +4,19 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from app.api.deps import DbSessionDep
+from app.core.config import settings
 from app.services.market_data.ccxt_adapter import CcxtAdapter
+from app.services.market_data.snapshot import market_snapshot_service
 
 # router = APIRouter(prefix="/marketdata", tags=["Market Data"])
 router = APIRouter(prefix="/marketdata", tags=["Market Data"])
+
+
+class RefreshRequest(BaseModel):
+    symbols: list[str] | None = None
 
 
 # @router.get("/ticker/latest")
@@ -29,7 +36,7 @@ async def orderbook_l2(symbol: str, limit: int = 50, db: DbSessionDep = None) ->
     #     if orderbook:
     #         return orderbook
     # Fallback to CCXT if not in DB or DB not available
-    return await CcxtAdapter().fetch_l2_orderbook(symbol, limit)
+    return await CcxtAdapter().fetch_orderbook(symbol, depth=limit)
 
 
 @router.get("/trades")
@@ -46,4 +53,12 @@ async def trades(
     #     if trades_data:
     #         return trades_data
     # Fallback to CCXT
-    return await CcxtAdapter().fetch_trades(symbol, since, limit)
+    return await CcxtAdapter().fetch_trades(symbol, limit=limit)
+
+
+@router.post("/refresh")
+async def refresh_marketdata(payload: RefreshRequest) -> dict[str, Any]:
+    """Fetch a full snapshot (1h candle close, orderbook, trades, funding) for symbols."""
+    symbols = payload.symbols or settings.symbols_list
+    snapshots = await market_snapshot_service.refresh(symbols)
+    return {"symbols": snapshots}

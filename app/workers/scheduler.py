@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import UTC, datetime, timedelta
 from collections.abc import Awaitable, Callable
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -11,6 +12,7 @@ from app.db.repositories.ohlcv import OhlcvRepository
 from app.db.session import get_session_factory
 from app.services.market_data.cache import MarketCache
 from app.services.market_data.ccxt_adapter import CcxtAdapter
+from app.services.market_data.snapshot import market_snapshot_service
 from app.services.market_data.ws_bybit import BybitWs
 from app.services.analysis import analysis_agent
 
@@ -22,6 +24,13 @@ async def run_periodic(task: Callable[[], Awaitable[None]], interval_seconds: in
         except Exception:
             pass
         await asyncio.sleep(interval_seconds)
+
+
+def seconds_until_next_hour() -> float:
+    """Return seconds until a few seconds after the next hour mark."""
+    now = datetime.now(UTC)
+    next_hour = (now + timedelta(hours=1)).replace(minute=0, second=5, microsecond=0)
+    return max((next_hour - now).total_seconds(), 0.0)
 
 
 async def start_market_data_tasks(
@@ -72,3 +81,19 @@ async def start_market_data_tasks(
         await analysis_agent.run()
 
     asyncio.create_task(run_periodic(_run_analysis, 4 * 60 * 60))
+
+    async def _run_hourly_snapshot() -> None:
+        symbols = settings.symbols_list
+        await market_snapshot_service.refresh(symbols)
+        await analysis_agent.run(symbols=symbols)
+
+    async def _hourly_loop() -> None:
+        # Align with 1h candle closes (slightly after the hour)
+        while True:
+            await asyncio.sleep(seconds_until_next_hour())
+            try:
+                await _run_hourly_snapshot()
+            except Exception:
+                pass
+
+    asyncio.create_task(_hourly_loop())
