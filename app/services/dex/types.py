@@ -23,3 +23,6 @@ class PoolSnapshot:
 
     # state
     liquidity: int | None = None
+
+    # Adapter-specific payload (keep stable schema while MVP evolves)
+    extra: dict[str, object] | None = None

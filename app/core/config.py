@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     base_rpc_url: str | None = Field(default=None, alias="BASE_RPC_URL")
     arbitrum_rpc_url: str | None = Field(default=None, alias="ARBITRUM_RPC_URL")
 
+    # Solana RPC (for Meteora)
+    solana_rpc_url: str | None = Field(default=None, alias="SOLANA_RPC_URL")
+
     # Ingestion/worker feature flags
     enable_market_data_tasks: bool = Field(default=False, alias="ENABLE_MARKET_DATA_TASKS")
     enable_backfill_on_startup: bool = Field(default=False, alias="ENABLE_BACKFILL_ON_STARTUP")

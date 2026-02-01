@@ -19,3 +19,6 @@ class PoolSnapshotOut(BaseModel):
     sqrt_price_x96: int | None = None
     tick: int | None = None
     liquidity: int | None = None
+
+    # Adapter-specific payload (Meteora etc.)
+    extra: dict[str, object] | None = None
