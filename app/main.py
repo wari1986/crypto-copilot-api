@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 
 from app.api.routes.candles import router as candles_router
+from app.api.routes.dex_uniswapv3 import router as dex_uniswapv3_router
 from app.api.routes.exec_sim import router as exec_sim_router
 from app.api.routes.health import router as health_router
 from app.api.routes.instruments import router as instruments_router
@@ -27,6 +28,7 @@ app.include_router(portfolio_router, prefix="/api/v1")
 app.include_router(exec_sim_router, prefix="/api/v1")
 app.include_router(llm_router, prefix="/api/v1")
 app.include_router(marketdata_router, prefix="/api/v1")
+app.include_router(dex_uniswapv3_router, prefix="/api/v1")
 
 
 @app.get("/")

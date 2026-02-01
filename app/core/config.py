@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     openai_model: str = Field(default="gpt-5", alias="OPENAI_MODEL")
     openai_timeout_seconds: int = Field(default=60, alias="OPENAI_TIMEOUT_SECONDS")
 
-    # Market data configuration (spot-only v1)
+    # Market data configuration (legacy exchange plumbing kept; not the focus)
     exchange: str = Field(default="bybit", alias="EXCHANGE")
     spot_only: bool = Field(default=True, alias="SPOT_ONLY")
     symbols: str = Field(default="BTC/USDT,ETH/USDT,SOL/USDT", alias="SYMBOLS")
@@ -47,6 +47,11 @@ class Settings(BaseSettings):
         default="wss://stream.bybit.com/v5/public/spot", alias="WS_PUBLIC_URL"
     )
 
+    # DEX / on-chain providers
+    ethereum_rpc_url: str | None = Field(default=None, alias="ETHEREUM_RPC_URL")
+    # Alias (shorter) for the same value; if both are set, ETHEREUM_RPC_URL wins.
+    eth_rpc_url: str | None = Field(default=None, alias="ETH_RPC_URL")
+
     # Ingestion/worker feature flags
     enable_market_data_tasks: bool = Field(default=False, alias="ENABLE_MARKET_DATA_TASKS")
     enable_backfill_on_startup: bool = Field(default=False, alias="ENABLE_BACKFILL_ON_STARTUP")
@@ -54,6 +59,10 @@ class Settings(BaseSettings):
     @property
     def symbols_list(self) -> list[str]:
         return [s.strip() for s in self.symbols.split(",") if s.strip()]
+
+    @property
+    def ethereum_rpc(self) -> str | None:
+        return self.ethereum_rpc_url or self.eth_rpc_url
 
 
 @lru_cache(maxsize=1)
