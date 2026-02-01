@@ -47,10 +47,10 @@ class Settings(BaseSettings):
         default="wss://stream.bybit.com/v5/public/spot", alias="WS_PUBLIC_URL"
     )
 
-    # DEX / on-chain providers
+    # DEX / on-chain providers (one env var per chain)
     ethereum_rpc_url: str | None = Field(default=None, alias="ETHEREUM_RPC_URL")
-    # Alias (shorter) for the same value; if both are set, ETHEREUM_RPC_URL wins.
-    eth_rpc_url: str | None = Field(default=None, alias="ETH_RPC_URL")
+    base_rpc_url: str | None = Field(default=None, alias="BASE_RPC_URL")
+    arbitrum_rpc_url: str | None = Field(default=None, alias="ARBITRUM_RPC_URL")
 
     # Ingestion/worker feature flags
     enable_market_data_tasks: bool = Field(default=False, alias="ENABLE_MARKET_DATA_TASKS")
@@ -60,9 +60,15 @@ class Settings(BaseSettings):
     def symbols_list(self) -> list[str]:
         return [s.strip() for s in self.symbols.split(",") if s.strip()]
 
-    @property
-    def ethereum_rpc(self) -> str | None:
-        return self.ethereum_rpc_url or self.eth_rpc_url
+    def rpc_for_chain(self, chain: str) -> str | None:
+        c = chain.lower().strip()
+        if c in {"ethereum", "mainnet", "eth"}:
+            return self.ethereum_rpc_url
+        if c in {"base"}:
+            return self.base_rpc_url
+        if c in {"arbitrum", "arb", "arbitrum-one"}:
+            return self.arbitrum_rpc_url
+        return None
 
 
 @lru_cache(maxsize=1)

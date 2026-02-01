@@ -13,8 +13,11 @@ async def get_uniswapv3_pool(chain: str, pool_address: str) -> PoolSnapshotOut:
     """Fetch a normalized Uniswap v3 pool snapshot.
 
     Notes:
-    - Currently supports Ethereum mainnet only (`chain` in {ethereum, mainnet, eth}).
-    - Requires `ETHEREUM_RPC_URL` (or `ETH_RPC_URL`).
+    - Supports `chain` in {ethereum|base|arbitrum}.
+    - Requires the matching RPC url env var:
+      - ETHEREUM_RPC_URL
+      - BASE_RPC_URL
+      - ARBITRUM_RPC_URL
     """
 
     try:

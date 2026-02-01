@@ -70,20 +70,25 @@ UNIV3_POOL_ABI = [
 class UniswapV3Adapter(DexAdapter):
     dex = "uniswapv3"
 
-    def _web3(self) -> Web3:
-        rpc = settings.ethereum_rpc
+    def _web3(self, *, chain: str) -> Web3:
+        rpc = settings.rpc_for_chain(chain)
         if not rpc:
             raise RuntimeError(
-                "Missing ETHEREUM_RPC_URL (or ETH_RPC_URL). Required for Uniswap v3 reads."
+                "Missing RPC url for chain. Set one of: ETHEREUM_RPC_URL, BASE_RPC_URL, ARBITRUM_RPC_URL."
             )
         return Web3(Web3.HTTPProvider(rpc))
 
     async def get_pool(self, *, chain: str, address: str) -> PoolSnapshot:
         # This adapter is synchronous web3 calls; keep the API async-safe for now.
-        if chain not in {"ethereum", "mainnet", "eth"}:
-            raise ValueError("Unsupported chain for Uniswap v3 adapter (expected ethereum)")
+        chain_norm = chain.lower().strip()
+        if chain_norm in {"eth", "mainnet"}:
+            chain_norm = "ethereum"
+        if chain_norm == "arb":
+            chain_norm = "arbitrum"
+        if chain_norm not in {"ethereum", "base", "arbitrum"}:
+            raise ValueError("Unsupported chain for Uniswap v3 adapter (ethereum|base|arbitrum)")
 
-        w3 = self._web3()
+        w3 = self._web3(chain=chain_norm)
         if not w3.is_address(address):
             raise ValueError("Invalid pool address")
 
@@ -101,7 +106,7 @@ class UniswapV3Adapter(DexAdapter):
         token1 = str(contract.functions.token1().call())
 
         return PoolSnapshot(
-            chain="ethereum",
+            chain=chain_norm,
             address=pool_addr,
             dex=self.dex,
             captured_at=datetime.now(timezone.utc),
