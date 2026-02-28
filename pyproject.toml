@@ -1,10 +1,8 @@
 [project]
 name = "crypto-copilot-api"
 version = "0.1.0"
-description = "Crypto Trading Copilot — API (FastAPI, SQLAlchemy async, Alembic, Postgres, CCXT, OpenAI)"
-authors = [
-  { name = "Your Name", email = "you@example.com" }
-]
+description = "Crypto Trading Copilot API (FastAPI, SQLAlchemy async, Alembic, Postgres, CCXT, OpenAI)"
+authors = [{ name = "Nico", email = "nico@example.com" }]
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -23,7 +21,7 @@ dependencies = [
   "ccxt>=4.3.0",
   "openai>=1.35.0",
   "python-dotenv>=1.0.1",
-  "web3>=6.20.0"
+  "web3>=6.20.0",
 ]
 
 [project.optional-dependencies]
@@ -35,7 +33,7 @@ dev = [
   "ruff>=0.4.8",
   "mypy>=1.10.0",
   "pre-commit>=3.7.1",
-  "types-python-dateutil>=2.9.0.20240316"
+  "types-python-dateutil>=2.9.0.20240316",
 ]
 
 [tool.uv]
@@ -43,15 +41,12 @@ package = true
 
 [tool.black]
 line-length = 100
-[target-version]
-py311 = true
-exclude = [
-  "migrations/*",
-]
+target-version = ["py311"]
+extend-exclude = "migrations/.*"
 
 [tool.ruff]
 line-length = 100
-lint.select = ["E", "F", "I", "B", "UP", "ASYNC", "COM"]
+lint.select = ["E", "F", "I", "B", "ASYNC"]
 lint.ignore = ["E501"]
 
 [tool.mypy]
@@ -71,6 +66,9 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 addopts = "-q"
 asyncio_mode = "auto"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [build-system]
 requires = ["hatchling>=1.21.1"]

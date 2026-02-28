@@ -1,11 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
-
 from fastapi import APIRouter
-
-from app.api.deps import DbSessionDep
-from app.services.portfolio.portfolio_service import PortfolioService
 
 router = APIRouter(prefix="/portfolio", tags=["Portfolio"])
 
