@@ -5,14 +5,10 @@ staged_files="$(git diff --cached --name-only)"
 
 if [ -n "$staged_files" ]; then
   if echo "$staged_files" | rg -n '(^|/)\.env($|[._].*)' >/dev/null; then
-    allowed='(^|/)\.env\.example$'
-    blocked="$(echo "$staged_files" | rg '(^|/)\.env($|[._].*)' | rg -v "$allowed" || true)"
-    if [ -n "$blocked" ]; then
-      echo "Blocked: committing env files is not allowed."
-      echo "$blocked"
-      echo "Keep secrets in local runtime env or secret manager."
-      exit 1
-    fi
+    echo "Blocked: committing env files is not allowed."
+    echo "$staged_files" | rg '(^|/)\.env($|[._].*)' || true
+    echo "Keep secrets in local runtime env or secret manager."
+    exit 1
   fi
 fi
 
