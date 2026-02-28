@@ -1,4 +1,11 @@
 repos:
+  - repo: local
+    hooks:
+      - id: prevent-env-and-secret-commits
+        name: Prevent env/secret commits
+        entry: scripts/prevent_env_and_secrets.sh
+        language: system
+        pass_filenames: false
   - repo: https://github.com/psf/black
     rev: 24.4.2
     hooks:

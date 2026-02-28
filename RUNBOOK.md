@@ -1,71 +1,66 @@
 # RUNBOOK — crypto-copilot-api
 
-## Local (fastest)
+## Objective
+Bring up the API reliably, verify health/readiness, and run quality checks.
 
-Prereqs:
+## Prerequisites
 - Python 3.11+
-- `uv` installed (https://docs.astral.sh/uv/)
-- Postgres (recommended) or accept in-memory SQLite for quick tests
+- `uv` installed
+- Docker Desktop (for containerized path)
 
-### 1) Install
+## Path A: Local (fast iteration)
 
+1. Install dependencies
 ```bash
+cp .env.example .env
 uv sync --all-extras
 ```
 
-### 2) Configure env
-
-```bash
-cp .env.example .env
-# edit .env
-```
-
-Recommended local Postgres:
-
-```env
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/crypto_copilot
-```
-
-### 3) Migrate + run
-
+2. Run migrations
 ```bash
 make migrate
+```
+
+3. Start API
+```bash
 make run
 ```
 
-### 4) Verify
+4. Smoke-check
+```bash
+./scripts/smoke_local.sh
+```
 
-- `GET http://localhost:8000/` → `{ "status": "ok" }`
-- `GET http://localhost:8000/api/v1/health` → status + version
-- `GET http://localhost:8000/api/v1/ready` → checks DB connectivity
+## Path B: Docker (most reproducible)
 
----
-
-## Docker (recommended for consistency)
-
+1. Build and start
 ```bash
 cp .env.example .env
-# set OPENAI_API_KEY etc.
-
 docker compose up -d --build
 ```
 
-Run migrations inside the API container:
-
+2. Run migrations
 ```bash
 docker compose exec api sh -lc "uv run alembic upgrade head"
 ```
 
-Then verify:
-
+3. Smoke-check
 ```bash
-curl -s http://localhost:8000/api/v1/health
-curl -s http://localhost:8000/api/v1/ready
+./scripts/smoke_local.sh
 ```
 
----
+## Quality Gates
+```bash
+make fmt
+make lint
+make test
+```
+
+## Troubleshooting
+- `Cannot connect to Docker daemon`: start Docker Desktop and retry.
+- `uv: command not found`: install uv from https://docs.astral.sh/uv/.
+- DB readiness fails: confirm `DATABASE_URL` in `.env` and rerun migrations.
 
 ## Notes
-
-- Bybit/CCXT logic is kept in the repo, but the current roadmap is DEX LP + perps.
-- Keep secrets in `.env` (never commit).
+- `/api/v1/health` is liveness and does not require DB.
+- `/api/v1/ready` checks DB connectivity.

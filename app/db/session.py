@@ -54,15 +54,17 @@ def _ensure_session_factory() -> async_sessionmaker[AsyncSession]:
                 ssl_context = ssl._create_unverified_context()
                 ssl_context.check_hostname = False
             connect_args["ssl"] = ssl_context
-        _engine = create_async_engine(
-            db_url,
-            pool_pre_ping=True,
-            connect_args=connect_args,
-            pool_size=settings.db_pool_size if "sqlite" not in db_url else None,  # type: ignore[arg-type]
-            max_overflow=settings.db_max_overflow if "sqlite" not in db_url else None,  # type: ignore[arg-type]
-            pool_timeout=settings.db_pool_timeout,
-            pool_recycle=settings.db_pool_recycle_seconds,
-        )
+        engine_kwargs: dict[str, object] = {
+            "pool_pre_ping": True,
+            "connect_args": connect_args,
+        }
+        if "sqlite" not in db_url:
+            engine_kwargs["pool_size"] = settings.db_pool_size
+            engine_kwargs["max_overflow"] = settings.db_max_overflow
+            engine_kwargs["pool_timeout"] = settings.db_pool_timeout
+            engine_kwargs["pool_recycle"] = settings.db_pool_recycle_seconds
+
+        _engine = create_async_engine(db_url, **engine_kwargs)
     if _session_maker is None:
         _session_maker = async_sessionmaker(
             _engine,
