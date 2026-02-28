@@ -8,7 +8,7 @@ check() {
   local expected="$2"
   local body
   body="$(curl -sS "${base_url}${path}")"
-  if ! echo "$body" | rg -q "$expected"; then
+  if ! echo "$body" | grep -q "$expected"; then
     echo "Smoke check failed for ${path}. Response: ${body}"
     exit 1
   fi
