@@ -28,7 +28,9 @@ flowchart LR
 
 ## Quickstart (Local, uv)
 ```bash
-cp .env.example .env
+cat > .env << 'EOF'
+DATABASE_URL=sqlite+aiosqlite:///:memory:
+EOF
 uv sync --all-extras
 make migrate
 make run
@@ -41,7 +43,9 @@ Open:
 
 ## Quickstart (Docker)
 ```bash
-cp .env.example .env
+cat > .env << 'EOF'
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/crypto_copilot
+EOF
 docker compose up -d --build
 docker compose exec api sh -lc "uv run alembic upgrade head"
 ./scripts/smoke_local.sh
@@ -80,7 +84,7 @@ uv run pre-commit install
 
 ## Security
 - Never commit real credentials.
-- `.env*` files are blocked by pre-commit except `.env.example`.
+- `.env*` files are blocked by pre-commit.
 - See `SECURITY.md` for reporting and remediation policy.
 
 ## Roadmap

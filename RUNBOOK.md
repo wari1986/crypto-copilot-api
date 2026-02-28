@@ -12,7 +12,9 @@ Bring up the API reliably, verify health/readiness, and run quality checks.
 
 1. Install dependencies
 ```bash
-cp .env.example .env
+cat > .env << 'EOF'
+DATABASE_URL=sqlite+aiosqlite:///:memory:
+EOF
 uv sync --all-extras
 ```
 
@@ -35,7 +37,9 @@ make run
 
 1. Build and start
 ```bash
-cp .env.example .env
+cat > .env << 'EOF'
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@db:5432/crypto_copilot
+EOF
 docker compose up -d --build
 ```
 

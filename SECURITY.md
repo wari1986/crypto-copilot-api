@@ -12,7 +12,7 @@ Include:
 ## Secret Handling Rules
 - Never commit secrets, tokens, private keys, or credentialed connection strings.
 - Use `.env` locally and a secret manager in deployed environments.
-- `.env.example` must contain placeholders only.
+- Do not track `.env*` files in git.
 
 ## Leak Response Playbook
 1. Revoke/rotate exposed credentials immediately.
@@ -22,6 +22,6 @@ Include:
 5. Review logs and access patterns for misuse.
 
 ## Preventive Controls in This Repo
-- Pre-commit hook blocks `.env*` files (except `.env.example`).
+- Pre-commit hook blocks `.env*` files.
 - Pre-commit hook scans staged additions for high-signal secret patterns.
 - CI runs automated secret scanning on pushes and pull requests.
