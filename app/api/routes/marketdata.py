@@ -7,6 +7,7 @@ from fastapi import APIRouter
 
 from app.api.deps import DbSessionDep
 from app.services.market_data.ccxt_adapter import CcxtAdapter
+from app.services.market_data.sentiment import fetch_fear_greed_index
 
 # router = APIRouter(prefix="/marketdata", tags=["Market Data"])
 router = APIRouter(prefix="/marketdata", tags=["Market Data"])
@@ -47,3 +48,9 @@ async def trades(
     #         return trades_data
     # Fallback to CCXT
     return await CcxtAdapter().fetch_trades(symbol, since, limit)
+
+
+@router.get("/sentiment")
+async def sentiment_index() -> dict[str, Any]:
+    """Fetch a simple market sentiment signal."""
+    return await fetch_fear_greed_index()
