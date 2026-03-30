@@ -93,6 +93,8 @@ Open:
 - `http://localhost:8000/docs`
 - `http://localhost:8000/api/v1/health`
 
+SQLite is acceptable for lightweight local checks. For the most credible showcase demo, use the Postgres-backed Docker flow below so migrations, readiness, and persistence run against a real database.
+
 ## Canonical Demo Setup
 
 The intended demo path is Postgres-backed.
