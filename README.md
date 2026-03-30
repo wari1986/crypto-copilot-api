@@ -36,6 +36,14 @@ The goal is to showcase:
 - practical demo security
 - lint/type/test discipline
 
+## Frontend Role
+
+This repository is intended to serve as the backend/API layer for a separate frontend application.
+
+- build the user-facing dashboard or copilot UI in a different repo
+- use this repo as the typed HTTP service boundary for market data, AI decisions, and paper-trade simulation
+- keep frontend concerns out of this codebase unless they are required to support the API contract or local demo ergonomics
+
 ## Supported API Surface
 
 Public read endpoints:

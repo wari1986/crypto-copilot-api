@@ -7,6 +7,7 @@ Behavior and workflow rules stay in [`ai/AGENTS.md`](/Users/Nico/dev/crypto-copi
 
 - Runtime: FastAPI application assembled in `app/main.py`.
 - Primary goal: expose a backend API for market data, portfolio context, DEX integrations, paper execution, and LLM-backed trading advice with strict validation.
+- Product role: act as the backend/service layer that a separate frontend repo can consume.
 - Current stack: Python 3.11, FastAPI, Pydantic v2, async SQLAlchemy, Alembic, Postgres or SQLite, CCXT, OpenAI SDK, Web3/WebSocket integrations.
 - Operational posture: backend-first, paper-trading only, with deterministic validation between model output and execution paths.
 
