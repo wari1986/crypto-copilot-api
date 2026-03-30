@@ -13,15 +13,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV PATH="/root/.local/bin:${PATH}"
 
-# Copy project metadata first (better layer caching)
-COPY pyproject.toml ./
-COPY README.md ./
+# Copy the project so the local package is available during sync
+COPY . .
 
 # Install deps (including extras if declared)
 RUN uv sync --all-extras
-
-# Copy the rest
-COPY . .
 
 EXPOSE 8000
 

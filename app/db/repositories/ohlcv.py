@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
@@ -14,7 +15,7 @@ class OhlcvRepository:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
-    async def insert_ohlcv_rows(self, instrument_id: int, rows: Iterable[dict]) -> None:
+    async def insert_ohlcv_rows(self, instrument_id: int, rows: Iterable[dict[str, Any]]) -> None:
         values = [
             {
                 "instrument_id": instrument_id,
@@ -31,7 +32,7 @@ class OhlcvRepository:
         if not values:
             return
         stmt = insert(OHLCV1m).values(values)
-        stmt = stmt.on_conflict_do_nothing(index_elements=["instrument_id", "ts"])  # type: ignore[attr-defined]
+        stmt = stmt.on_conflict_do_nothing(index_elements=["instrument_id", "ts"])
         await self._db.execute(stmt)
         await self._db.commit()
 

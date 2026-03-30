@@ -35,6 +35,8 @@ Operational guidance lives here so `ai/AGENTS.md` can stay focused on behavior a
 
 ## Safety Notes
 
+- `Yeet` authorization is limited to normal git workflow actions for this repository: status, add, commit, pull/rebase, conflict resolution, push, and PR creation when requested.
+- Do not use destructive git or GitHub operations by default. That includes force-push, branch deletion, tag deletion, repository settings changes, or other remote-destructive actions unless the user explicitly requests them.
 - Do not introduce real-trading behavior.
 - Do not weaken schema or risk validation around LLM-driven flows.
 - Never commit secrets or operator-specific credentials.

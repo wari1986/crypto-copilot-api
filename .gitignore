@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 .env
 .env.*
+!.env.example
+ai/tasks/task.md
 .venv/
 .uv/
 .pytest_cache/

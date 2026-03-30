@@ -26,29 +26,29 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base, TimestampMixin
 
 
-class Exchange(str, enum.Enum):
+class Exchange(enum.StrEnum):
     BYBIT = "BYBIT"
 
 
-class CandleInterval(str, enum.Enum):
+class CandleInterval(enum.StrEnum):
     m1 = "1m"
     m5 = "5m"
     h1 = "1h"
 
 
-class OrderSide(str, enum.Enum):
+class OrderSide(enum.StrEnum):
     BUY = "buy"
     SELL = "sell"
 
 
-class OrderType(str, enum.Enum):
+class OrderType(enum.StrEnum):
     LIMIT = "limit"
     MARKET = "market"
     POST_ONLY = "post_only"
     IOC = "ioc"
 
 
-class OrderStatus(str, enum.Enum):
+class OrderStatus(enum.StrEnum):
     NEW = "new"
     PARTIALLY_FILLED = "partially_filled"
     FILLED = "filled"
@@ -56,7 +56,7 @@ class OrderStatus(str, enum.Enum):
     REJECTED = "rejected"
 
 
-class PositionSide(str, enum.Enum):
+class PositionSide(enum.StrEnum):
     LONG = "long"
     SHORT = "short"
     FLAT = "flat"
@@ -105,6 +105,21 @@ class Candle(TimestampMixin, Base):
     instrument_id: Mapped[int] = mapped_column(
         ForeignKey("instruments.id", ondelete="CASCADE"), nullable=False,
     )
+    interval: Mapped[CandleInterval] = mapped_column(
+        Enum(CandleInterval, name="candle_interval_enum", native_enum=False),
+        nullable=False,
+    )
+    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    open: Mapped[float] = mapped_column(Float, nullable=False)
+    high: Mapped[float] = mapped_column(Float, nullable=False)
+    low: Mapped[float] = mapped_column(Float, nullable=False)
+    close: Mapped[float] = mapped_column(Float, nullable=False)
+    volume: Mapped[float] = mapped_column(Float, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("instrument_id", "interval", "ts", name="uq_candle_unique"),
+        Index("ix_candles_ts", "ts"),
+    )
 
 
 # Spot-only market data tables (v1)
@@ -151,7 +166,7 @@ class TickerRT(TimestampMixin, Base):
     __table_args__ = (Index("ix_tickerrt_ts", "ts"),)
 
 
-class OBSide(str, enum.Enum):
+class OBSide(enum.StrEnum):
     bid = "bid"
     ask = "ask"
 
@@ -175,7 +190,7 @@ class OrderBookL2(TimestampMixin, Base):
     __table_args__ = (Index("ix_ob_l2_instr_ts_side", "instrument_id", "ts", "side"),)
 
 
-class TradeSide(str, enum.Enum):
+class TradeSide(enum.StrEnum):
     buy = "buy"
     sell = "sell"
 
@@ -198,20 +213,6 @@ class TradeRT(TimestampMixin, Base):
     __table_args__ = (
         UniqueConstraint("instrument_id", "trade_id", name="uq_trade_rt_unique"),
         Index("ix_tradert_ts", "ts"),
-    )
-    interval: Mapped[CandleInterval] = mapped_column(
-        Enum(CandleInterval, name="candle_interval_enum", native_enum=False), nullable=False,
-    )
-    ts: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    open: Mapped[float] = mapped_column(Float, nullable=False)
-    high: Mapped[float] = mapped_column(Float, nullable=False)
-    low: Mapped[float] = mapped_column(Float, nullable=False)
-    close: Mapped[float] = mapped_column(Float, nullable=False)
-    volume: Mapped[float] = mapped_column(Float, nullable=False)
-
-    __table_args__ = (
-        UniqueConstraint("instrument_id", "interval", "ts", name="uq_candle_unique"),
-        Index("ix_candles_ts", "ts"),
     )
 
 

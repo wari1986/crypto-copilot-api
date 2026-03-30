@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from typing import cast
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from starlette.types import ExceptionHandler
 
 
 class AppError(Exception):
@@ -16,4 +19,5 @@ async def app_error_handler(_: Request, exc: AppError) -> JSONResponse:
 
 
 def setup_exception_handlers(app: FastAPI) -> None:
-    app.add_exception_handler(AppError, app_error_handler)
+    handler = cast(ExceptionHandler, app_error_handler)
+    app.add_exception_handler(AppError, handler)

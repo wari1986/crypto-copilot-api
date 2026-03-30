@@ -73,10 +73,9 @@ class InstrumentsRepository:
         return res.scalar_one_or_none()
 
 
-def inst_exchange_default():
+def inst_exchange_default() -> object:
     # Fallback enum value when creating a new instrument
     from app.db.models import Exchange
 
     return Exchange.BYBIT
-
 

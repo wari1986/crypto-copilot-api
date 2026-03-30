@@ -14,7 +14,7 @@ def set_request_id(request_id: str | None) -> None:
 class RequestIdFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:  # noqa: D401
         request_id = _request_id_ctx.get()
-        record.request_id = request_id or "-"  # type: ignore[attr-defined]
+        record.__dict__["request_id"] = request_id or "-"
         return super().format(record)
 
 

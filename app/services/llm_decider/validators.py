@@ -18,5 +18,7 @@ def _validate_trade(trade: ProposedTrade) -> None:
         raise ValidationError("qty must be positive")
     if trade.order_type == OrderType.MARKET and trade.price is not None:
         raise ValidationError("market orders must not include price")
+    if trade.order_type != OrderType.MARKET and trade.price is None:
+        raise ValidationError("non-market orders must include price")
     if trade.max_slippage_bps < 0 or trade.max_slippage_bps > 10_000:
         raise ValidationError("max_slippage_bps out of bounds")

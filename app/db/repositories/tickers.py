@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,7 +12,7 @@ class TickersRepository:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
-    async def insert_ticker(self, instrument_id: int, row: dict) -> None:
+    async def insert_ticker(self, instrument_id: int, row: dict[str, Any]) -> None:
         rec = TickerRT(
             instrument_id=instrument_id,
             ts=row["ts"],
@@ -32,5 +34,4 @@ class TickersRepository:
             select(TickerRT).where(TickerRT.instrument_id == sub).order_by(TickerRT.ts.desc()).limit(1),
         )
         return res.scalar_one_or_none()
-
 

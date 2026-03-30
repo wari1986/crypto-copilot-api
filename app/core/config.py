@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
     openai_model: str = Field(default="gpt-5", alias="OPENAI_MODEL")
     openai_timeout_seconds: int = Field(default=60, alias="OPENAI_TIMEOUT_SECONDS")
+    demo_api_key: str | None = Field(default=None, alias="DEMO_API_KEY")
 
     # Market data configuration (legacy exchange plumbing kept; not the focus)
     exchange: str = Field(default="bybit", alias="EXCHANGE")
@@ -44,7 +45,8 @@ class Settings(BaseSettings):
     ws_snapshot_interval_sec: int = Field(default=30, alias="WS_SNAPSHOT_INTERVAL_SEC")
     backfill_lookback_days: int = Field(default=120, alias="BACKFILL_LOOKBACK_DAYS")
     ws_public_url: str = Field(
-        default="wss://stream.bybit.com/v5/public/spot", alias="WS_PUBLIC_URL"
+        default="wss://stream.bybit.com/v5/public/spot",
+        alias="WS_PUBLIC_URL",
     )
 
     # DEX / on-chain providers (one env var per chain)
@@ -76,7 +78,7 @@ class Settings(BaseSettings):
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    return Settings()  # type: ignore[call-arg]
+    return Settings()
 
 
 settings = get_settings()

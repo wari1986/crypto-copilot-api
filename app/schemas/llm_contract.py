@@ -1,30 +1,30 @@
 from __future__ import annotations
 
-from enum import Enum
+import enum
 from typing import Literal
 
 from pydantic import BaseModel, Field, PositiveFloat, model_validator
 
 
-class OrderSide(str, Enum):
+class OrderSide(enum.StrEnum):
     BUY = "buy"
     SELL = "sell"
 
 
-class OrderType(str, Enum):
+class OrderType(enum.StrEnum):
     LIMIT = "limit"
     MARKET = "market"
     POST_ONLY = "post_only"
     IOC = "ioc"
 
 
-class TimeInForce(str, Enum):
+class TimeInForce(enum.StrEnum):
     GTC = "GTC"
     IOC = "IOC"
     FOK = "FOK"
 
 
-class ActionType(str, Enum):
+class ActionType(enum.StrEnum):
     PROPOSED_TRADE = "ProposedTrade"
     CANCEL = "Cancel"
     MOVE_STOP = "MoveStop"
@@ -87,5 +87,5 @@ class Plan(BaseModel):
     decision_id: str = Field(pattern=r"^[0-9a-fA-F-]{36}$")
 
 
-def get_json_schema() -> dict:
+def get_json_schema() -> dict[str, object]:
     return Plan.model_json_schema()

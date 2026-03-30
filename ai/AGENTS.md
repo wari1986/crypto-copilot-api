@@ -33,6 +33,8 @@ Read these files in order at the start of each session:
 - Keep diffs minimal and avoid rewriting unrelated code.
 - Prefer `apply_patch` for small targeted edits.
 - Use `rg` and `rg --files` for search.
+- Treat an explicit `yeet` instruction as authorization to perform the normal repo-local git flow for this repository without extra conversational confirmation: inspect status, stage, commit, rebase/pull, resolve conflicts, push, and open a PR when requested.
+- Keep `yeet` scoped to this repository only. Do not perform destructive GitHub or git operations such as deleting branches, force-pushing, rewriting remote history, deleting tags, or changing repository settings unless the user explicitly asks for that exact action.
 - Preserve the existing service boundaries before introducing new abstractions.
 - Keep route handlers thin and move orchestration into services.
 - Keep LLM behavior schema-bound and validator-gated.

@@ -22,7 +22,9 @@ def test_plan_valid_schema() -> None:
         constraints_checked={"risk": True, "liquidity": True, "exposure": True, "drawdown": True},
         decision_id="00000000-0000-0000-0000-000000000000",
     )
-    assert plan.actions[0].qty == 1.0
+    action = plan.actions[0]
+    assert isinstance(action, ProposedTrade)
+    assert action.qty == 1.0
 
 
 def test_market_with_price_rejected() -> None:

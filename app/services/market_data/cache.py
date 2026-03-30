@@ -4,6 +4,7 @@ import asyncio
 from collections import deque
 from dataclasses import dataclass, field
 from decimal import Decimal
+from typing import Any
 
 
 @dataclass
@@ -16,7 +17,7 @@ class OrderbookSnapshot:
 class MarketCache:
     orderbooks: dict[str, OrderbookSnapshot] = field(default_factory=dict)
     trades: dict[str, deque[tuple[Decimal, Decimal]]] = field(default_factory=dict)  # (price, qty)
-    tickers: dict[str, dict] = field(default_factory=dict)
+    tickers: dict[str, dict[str, Decimal | None | Any]] = field(default_factory=dict)
     _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
     async def set_orderbook(self, symbol: str, snapshot: OrderbookSnapshot) -> None:
@@ -28,18 +29,20 @@ class MarketCache:
             dq = self.trades.setdefault(symbol, deque(maxlen=maxlen))
             dq.append((price, qty))
 
-    async def set_ticker(self, symbol: str, ticker: dict) -> None:
+    async def set_ticker(self, symbol: str, ticker: dict[str, Decimal | None | Any]) -> None:
         async with self._lock:
             self.tickers[symbol] = ticker
 
 
-def atr(candles: list[dict], period: int = 14, method: str = "RMA") -> float:
+def atr(candles: list[dict[str, Decimal]], period: int = 14, method: str = "RMA") -> float:
     if not candles or len(candles) < 2:
         return 0.0
     trs: list[float] = []
-    prev_close = candles[0]["close"]
+    prev_close = float(candles[0]["close"])
     for c in candles[1:]:
-        high, low, close = c["high"], c["low"], c["close"]
+        high = float(c["high"])
+        low = float(c["low"])
+        close = float(c["close"])
         tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
         trs.append(tr)
         prev_close = close
@@ -54,14 +57,14 @@ def atr(candles: list[dict], period: int = 14, method: str = "RMA") -> float:
     return rma
 
 
-def volatility_regime(candles: list[dict]) -> str:
+def volatility_regime(candles: list[dict[str, Decimal]]) -> str:
     return "quiet" if atr(candles) < 0.01 else "expansion"
 
 
-def rolling_volume(candles: list[dict], n: int) -> float:
+def rolling_volume(candles: list[dict[str, Decimal]], n: int) -> float:
     if not candles:
         return 0.0
-    return sum(c.get("volume", 0.0) for c in candles[-n:])
+    return sum(float(c.get("volume", Decimal("0"))) for c in candles[-n:])
 
 
 def spread_depth_stats(ob: OrderbookSnapshot) -> dict[str, float]:
@@ -69,15 +72,15 @@ def spread_depth_stats(ob: OrderbookSnapshot) -> dict[str, float]:
         return {"spread_bps": 0.0, "depth_at_10bps": 0.0, "depth_at_50bps": 0.0}
     best_bid = ob.bids[0][0]
     best_ask = ob.asks[0][0]
-    mid = (best_bid + best_ask) / 2
-    spread_bps = (best_ask - best_bid) / mid * 10_000
+    mid = (best_bid + best_ask) / Decimal(2)
+    spread_bps = float((best_ask - best_bid) / mid * Decimal(10_000))
 
     def depth_at_bps(bps: float) -> float:
-        target_price = mid * (1 + (bps / 10_000))
+        target_price = mid * (Decimal(1) + (Decimal(str(bps)) / Decimal(10_000)))
         depth = 0.0
         for price, qty in ob.asks:
             if price <= target_price:
-                depth += qty
+                depth += float(qty)
             else:
                 break
         return depth

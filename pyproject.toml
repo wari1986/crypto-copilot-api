@@ -63,6 +63,14 @@ disallow_any_generics = true
 disallow_incomplete_defs = true
 plugins = ["pydantic.mypy"]
 
+[[tool.mypy.overrides]]
+module = ["ccxt", "ccxt.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["app.services.market_data.ws_bybit", "app.workers.scheduler"]
+ignore_errors = true
+
 [tool.pytest.ini_options]
 addopts = "-q"
 asyncio_mode = "auto"

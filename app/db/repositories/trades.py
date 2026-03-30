@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
@@ -14,7 +15,7 @@ class TradesRepository:
     def __init__(self, db: AsyncSession) -> None:
         self._db = db
 
-    async def insert_trades(self, instrument_id: int, rows: Iterable[dict]) -> None:
+    async def insert_trades(self, instrument_id: int, rows: Iterable[dict[str, Any]]) -> None:
         values = [
             {
                 "instrument_id": instrument_id,
@@ -43,5 +44,4 @@ class TradesRepository:
         q = q.order_by(TradeRT.ts.desc()).limit(limit)
         res = await self._db.execute(q)
         return list(res.scalars().all())
-
 

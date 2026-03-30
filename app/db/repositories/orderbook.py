@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,8 +17,8 @@ class OrderBookRepository:
         self,
         instrument_id: int,
         snapshot_id: str,
-        bids: list[tuple],
-        asks: list[tuple],
+        bids: list[tuple[Decimal, Decimal]],
+        asks: list[tuple[Decimal, Decimal]],
         ts: datetime,
     ) -> None:
         # Remove previous levels at the same snapshot? We keep append-only rows for history.
@@ -50,8 +51,8 @@ class OrderBookRepository:
         instrument_id: int,
         update_id: int | None,
         side: str,
-        px,
-        qty,
+        px: Decimal,
+        qty: Decimal,
         ts: datetime,
     ) -> None:
         self._db.add(
@@ -71,8 +72,8 @@ class OrderBookRepository:
         instrument_id: int,
         update_id: int | None,
         *,
-        bids: list[tuple],
-        asks: list[tuple],
+        bids: list[tuple[Decimal, Decimal]],
+        asks: list[tuple[Decimal, Decimal]],
         ts: datetime,
     ) -> None:
         for px, qty in bids:
@@ -99,7 +100,11 @@ class OrderBookRepository:
             )
         await self._db.commit()
 
-    async def get_latest_snapshot(self, symbol: str, limit_per_side: int) -> dict:
+    async def get_latest_snapshot(
+        self,
+        symbol: str,
+        limit_per_side: int,
+    ) -> dict[str, object]:
         sub = select(Instrument.id).where(Instrument.symbol == symbol).scalar_subquery()
         # Find latest snapshot timestamp for this instrument
         res = await self._db.execute(

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -122,3 +122,68 @@ class CcxtAdapter:
                 },
             )
         return out
+
+    async def fetch_l2_orderbook(self, symbol: str, limit: int = 50) -> dict[str, Any]:
+        raw = await self._client.fetch_l2_order_book(symbol, limit=limit)
+        bids = [
+            {"price": Decimal(str(price)), "qty": Decimal(str(qty))}
+            for price, qty in raw.get("bids", [])
+        ]
+        asks = [
+            {"price": Decimal(str(price)), "qty": Decimal(str(qty))}
+            for price, qty in raw.get("asks", [])
+        ]
+        best_bid = bids[0]["price"] if bids else None
+        best_ask = asks[0]["price"] if asks else None
+        mid = None
+        if best_bid is not None and best_ask is not None:
+            mid = (best_bid + best_ask) / Decimal(2)
+        return {
+            "symbol": symbol,
+            "best_bid": best_bid,
+            "best_ask": best_ask,
+            "mid": mid,
+            "bids": bids,
+            "asks": asks,
+        }
+
+    async def fetch_trades(
+        self,
+        symbol: str,
+        since: datetime | None = None,
+        limit: int = 200,
+    ) -> list[dict[str, Any]]:
+        since_ms = int(since.timestamp() * 1000) if since else None
+        trades = await self._client.fetch_trades(symbol, since=since_ms, limit=limit)
+        out: list[dict[str, Any]] = []
+        for trade in trades:
+            timestamp = trade.get("timestamp")
+            price = trade.get("price")
+            amount = trade.get("amount")
+            if timestamp is None or price is None or amount is None:
+                continue
+            out.append(
+                {
+                    "trade_id": str(trade.get("id") or trade.get("trade_id") or ""),
+                    "ts": datetime.fromtimestamp(timestamp / 1000, tz=UTC),
+                    "price": Decimal(str(price)),
+                    "qty": Decimal(str(amount)),
+                    "side": str(trade.get("side") or "buy").lower(),
+                },
+            )
+        return out
+
+    async def backfill_ohlcv_1m(self, symbol: str, lookback_days: int) -> list[dict[str, Any]]:
+        cursor = datetime.now(UTC) - timedelta(days=lookback_days)
+        rows: list[dict[str, Any]] = []
+        while True:
+            batch = await self.fetch_ohlcv(symbol, timeframe="1m", since=cursor, limit=1000)
+            if not batch:
+                break
+            for row in batch:
+                if not rows or row["ts"] > rows[-1]["ts"]:
+                    rows.append(row)
+            if len(batch) < 1000:
+                break
+            cursor = batch[-1]["ts"] + timedelta(minutes=1)
+        return rows
